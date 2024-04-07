@@ -11,13 +11,14 @@ CONFIG += c++17
 SOURCES += \
     Logic/capplicationcontroller.cpp \
     MapElements/croaduser.cpp \
+    UI/chomepage.cpp \
     UI/cmainwindow.cpp \
     main.cpp \
-    UI/mainwindow.cpp \
 
 HEADERS += \
     Logic/capplicationcontroller.h \
     MapElements/croaduser.h \
+    UI/chomepage.h \
     UI/cmainwindow.h
 
 # Default rules for deployment.

@@ -1,7 +1,9 @@
 #ifndef CAPPLICATIONCONTROLLER_H
 #define CAPPLICATIONCONTROLLER_H
 
-class CApplicationController
+#include <QObject>
+
+class CApplicationController: public QObject
 {
     Q_OBJECT
 public:

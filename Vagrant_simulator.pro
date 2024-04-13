@@ -11,14 +11,21 @@ CONFIG += c++17
 SOURCES += \
     Logic/capplicationcontroller.cpp \
     MapElements/croaduser.cpp \
+    UI/chomepage.cpp \
     UI/cmainwindow.cpp \
+    UI/cmapcreationpage.cpp \
+    UI/cmapselectionpage.cpp \
+    UI/iuipage.cpp \
     main.cpp \
-    UI/mainwindow.cpp \
 
 HEADERS += \
     Logic/capplicationcontroller.h \
     MapElements/croaduser.h \
-    UI/cmainwindow.h
+    UI/chomepage.h \
+    UI/cmainwindow.h \
+    UI/cmapcreationpage.h \
+    UI/cmapselectionpage.h \
+    UI/iuipage.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

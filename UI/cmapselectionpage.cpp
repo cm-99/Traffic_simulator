@@ -6,10 +6,8 @@ CMapSelectionPage::CMapSelectionPage(QWidget *parent)
 
     m_button_edit_map.setFixedSize(200, 50);
     m_button_start_simulation.setFixedSize(200, 50);
-
     m_button_edit_map.setText("Edit");
     m_button_start_simulation.setText("Start simulation");
-
     m_buttons_layout.addWidget(&m_button_edit_map);
     m_buttons_layout.addSpacing(30);
     m_buttons_layout.addWidget(&m_button_start_simulation);

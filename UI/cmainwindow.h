@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QMenuBar>
+#include <QStackedWidget>
 
 #include "Logic/capplicationcontroller.h"
 #include "cmapcreationpage.h"
@@ -22,8 +23,9 @@ public:
 
 private:
     CApplicationController *m_application_controller;
-    IUIPage *m_previous_page = nullptr;
+    int previous_page_index = 0;
 
+    QStackedWidget stacked_widget;
     CHomePage m_home_page;
     CMapSelectionPage m_map_selection_page;
     CMapCreationPage m_map_creation_page;
@@ -44,7 +46,7 @@ public slots:
      */
     void slot_process_map_loading_request();
 
-    //void slot_switch_to_previous_page();
+    void slot_switch_to_previous_page();
 };
 
 #endif // CMAINWINDOW_H

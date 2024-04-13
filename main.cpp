@@ -1,11 +1,10 @@
-#include "UI/cmainwindow.h"
+#include "Logic/capplicationcontroller.h"
 
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    CMainWindow w;
-    w.show();
+    CApplicationController application_controller;
     return a.exec();
 }

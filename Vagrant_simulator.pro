@@ -13,13 +13,19 @@ SOURCES += \
     MapElements/croaduser.cpp \
     UI/chomepage.cpp \
     UI/cmainwindow.cpp \
+    UI/cmapcreationpage.cpp \
+    UI/cmapselectionpage.cpp \
+    UI/iuipage.cpp \
     main.cpp \
 
 HEADERS += \
     Logic/capplicationcontroller.h \
     MapElements/croaduser.h \
     UI/chomepage.h \
-    UI/cmainwindow.h
+    UI/cmainwindow.h \
+    UI/cmapcreationpage.h \
+    UI/cmapselectionpage.h \
+    UI/iuipage.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

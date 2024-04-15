@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>map_elements_graphics/filler.png</file>
+        <file>map_elements_graphics/pavement.png</file>
+    </qresource>
+</RCC>

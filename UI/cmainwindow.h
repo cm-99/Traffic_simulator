@@ -24,6 +24,7 @@ public:
 private:
     CApplicationController *m_application_controller;
     int previous_page_index = 0;
+    QPushButton back_button;
 
     QStackedWidget stacked_widget;
     CHomePage m_home_page;

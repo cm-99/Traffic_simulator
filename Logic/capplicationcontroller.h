@@ -3,6 +3,8 @@
 
 #include <QObject>
 
+#include "MapImportAndExportManagers/imapimportandexportmanager.h"
+
 class CMainWindow;
 
 /**
@@ -19,17 +21,14 @@ public:
     CApplicationController();
     ~CApplicationController();
 
+    QMap<QString, IMapImportAndExportManager*> map_formats_mapped_to_managers;
     const QList<QString> &get_supported_map_file_formats() const;
     void delegate_map_loading(QString map_file_path);
-    void delegate_map_saving(QString map_file_path);
+    void delegate_map_saving(const CReadOnlyMap* map_to_save, QString map_file_path);
 
 private:
     CMainWindow *m_main_window;
     QList<QString> m_supported_map_file_formats;
-
-    void set_supported_map_file_formats();
-
-
 };
 
 #endif // CAPPLICATIONCONTROLLER_H

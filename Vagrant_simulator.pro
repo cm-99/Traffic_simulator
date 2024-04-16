@@ -9,7 +9,17 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Logic/MapImportAndExportManagers/cxmlmapimportandexportmanager.cpp \
+    Logic/MapModels/ceditablemap.cpp \
+    Logic/MapViews/cmapcreationview.cpp \
+    Logic/MapViews/csimulationview.cpp \
     Logic/capplicationcontroller.cpp \
+    Logic/cbasecontroller.cpp \
+    Logic/MapModels/creadonlymap.cpp \
+    Logic/MapViews/cbaseview.cpp \
+    Logic/cmapcreationcontroller.cpp \
+    Logic/csimulationcontroller.cpp \
+    Logic/MapImportAndExportManagers/imapimportandexportmanager.cpp \
     MapElements/RoadUsers/ccar.cpp \
     MapElements/StationaryMapElements/RoadElements/ccrossing.cpp \
     MapElements/StationaryMapElements/RoadElements/croadway.cpp \
@@ -35,7 +45,17 @@ SOURCES += \
     main.cpp \
 
 HEADERS += \
+    Logic/MapImportAndExportManagers/cxmlmapimportandexportmanager.h \
+    Logic/MapModels/ceditablemap.h \
+    Logic/MapViews/cmapcreationview.h \
+    Logic/MapViews/csimulationview.h \
     Logic/capplicationcontroller.h \
+    Logic/cbasecontroller.h \
+    Logic/MapModels/creadonlymap.h \
+    Logic/MapViews/cbaseview.h \
+    Logic/cmapcreationcontroller.h \
+    Logic/csimulationcontroller.h \
+    Logic/MapImportAndExportManagers/imapimportandexportmanager.h \
     MapElements/RoadUsers/ccar.h \
     MapElements/StationaryMapElements/RoadElements/ccrossing.h \
     MapElements/StationaryMapElements/RoadElements/croadway.h \

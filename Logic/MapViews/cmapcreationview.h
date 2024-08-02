@@ -1,6 +1,7 @@
 #ifndef CMAPCREATIONVIEW_H
 #define CMAPCREATIONVIEW_H
 
+#include "Logic/cmapcreationcontroller.h"
 #include "cbaseview.h"
 
 /**
@@ -12,7 +13,17 @@
 class CMapCreationView : public CBaseView
 {
 public:
-    CMapCreationView(CReadOnlyMap *map_model);
+    CMapCreationView(CReadOnlyMap *map_model, CMapCreationController *map_creation_controller);
+
+private:
+    CMapCreationController *m_map_creation_controller;
+
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent* event);
+    void process_zooming(QWheelEvent *event);
+
+    void place_element_and_prepare_next(QMouseEvent *event);
 };
 
 #endif // CMAPCREATIONVIEW_H

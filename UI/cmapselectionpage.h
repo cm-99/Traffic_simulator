@@ -15,6 +15,7 @@ class CMapSelectionPage : public IUIPage
     Q_OBJECT
 public:
     explicit CMapSelectionPage(QWidget *parent = nullptr);
+    void restore_to_default() override {};
 
     QVBoxLayout m_main_layout;
     QGridLayout m_map_miniatures_layout;

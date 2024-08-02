@@ -1,7 +1,8 @@
 #include "cfiller.h"
 
-CFiller::CFiller()
+CFiller::CFiller() :
+    CStationaryMapElement(EStationaryMapElementType::filler, "filler", true)
 {
     setPixmap(QPixmap(":/map_elements_graphics/filler.png"));
-    this -> setZValue(-1);
+    this -> setZValue(-2);
 }

@@ -65,22 +65,8 @@ class CTrafficLight : public QObject, public CTrafficControlElement
 {
     Q_OBJECT
 public:
-    /**
-     * @brief CTrafficLight
-     * @param traffic_ligths_type
-     * @param lights_phases_pixmaps - pixmaps of traffic lights during corresponding configurations IN ORDER:
-     * inactive
-     * red
-     * red_and_yellow
-     * green
-     * yellow
-     * @param traffic_lights_duration
-     * @param is_conditional_turn_present
-     */
-    CTrafficLight(ETrafficLightsType traffic_ligths_type, QVector<QPixmap> lights_configurations_pixmaps,
-                  STrafficLightsDuration traffic_lights_duration = {STrafficLightsDuration(30000, 3000, 30000, 1000)},
-                  bool is_conditional_turn_present = false);
 
+    static CStationaryMapElement *create_collision_possible_traffic_lights();
     const STrafficLightsDuration& get_traffic_lights_durations() const {return m_traffic_ligths_durations;}
     int get_lights_simulation_offset_time() const {return m_lights_simulation_offset_time;}
     ETrafficLightsPhase get_current_lights_phase() const {return m_current_lights_phase;}
@@ -100,6 +86,21 @@ public:
     void restart_simulation() {synchronize_lights_with_offset();}
 
 private:
+    /**
+     * @brief CTrafficLight
+     * @param traffic_ligths_type
+     * @param lights_phases_pixmaps - pixmaps of traffic lights during corresponding configurations IN ORDER:
+     * inactive
+     * red
+     * red_and_yellow
+     * green
+     * yellow
+     * @param traffic_lights_duration
+     * @param is_conditional_turn_present
+     */
+    CTrafficLight(ETrafficLightsType traffic_ligths_type, QVector<QPixmap> lights_configurations_pixmaps,
+                  STrafficLightsDuration traffic_lights_duration, QString description, bool is_conditional_turn_present = false);
+
     bool m_is_conditional_turn_present;
     ETrafficLightsType m_traffic_ligths_type;
     QVector<STrafficLightsCycle> m_traffic_lights_cycle;

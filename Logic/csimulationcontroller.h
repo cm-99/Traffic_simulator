@@ -12,7 +12,7 @@
 class CSimulationController : public CBaseController
 {
 public:
-    explicit CSimulationController();
+    explicit CSimulationController() {};
     CSimulationController (CEditableMap *map_model);
 
     ~CSimulationController();

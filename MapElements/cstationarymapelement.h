@@ -13,14 +13,19 @@ enum class EStationaryMapElementType {road_element, traffic_control_element, fil
 class CStationaryMapElement: public QGraphicsPixmapItem
 {
 public:
-    CStationaryMapElement(EStationaryMapElementType map_element_type = EStationaryMapElementType::filler)
-        : m_map_element_type(map_element_type){};
+    CStationaryMapElement(EStationaryMapElementType map_element_type, QString description, bool is_rotable):
+        m_is_rotable(is_rotable),
+        m_map_element_type(map_element_type),
+        m_description(description) {};
     EStationaryMapElementType get_map_element_type() const {return m_map_element_type;}
-    const QSize& get_default_map_element_size() const {return m_default_map_element_size;}
+    static QSize get_default_map_element_size() {return QSize(40, 40);}
+    QString get_description() const {return m_description;}
+    bool is_rotable() const {return m_is_rotable;}
 
 private:
-    QSize m_default_map_element_size{QSize(40, 40)};
+    bool m_is_rotable;
     EStationaryMapElementType m_map_element_type;
+    QString m_description;
 };
 
 #endif // CSTATIONARYMAPELEMENT_H

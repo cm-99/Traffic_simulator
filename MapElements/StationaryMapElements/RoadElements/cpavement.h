@@ -4,12 +4,15 @@
 #include "MapElements/StationaryMapElements/croadelement.h"
 
 /**
- * @brief The CPavement class is a graphical representation of pedestrian crossing.
+ * @brief The CPavement class is a graphical representation of pavement.
  */
 class CPavement : public CRoadElement
 {
 public:
-    CPavement(QPixmap pavement_pixmap);
+    static CStationaryMapElement *create_pavement();
+
+private:
+    CPavement(QPixmap pavement_pixmap, QString description, EMovementPlane movement_plane);
 };
 
 #endif // CPAVEMENT_H

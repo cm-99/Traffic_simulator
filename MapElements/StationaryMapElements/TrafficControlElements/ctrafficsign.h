@@ -14,8 +14,8 @@ enum class ETrafficSignCategory {warning_sign, injuction_sign, prohibition_sign,
 class CTrafficSign : public CTrafficControlElement
 {
 public:
-    CTrafficSign(ETrafficSignCategory traffic_sign_category) :
-        CTrafficControlElement(ETrafficControlElementType::traffic_sign),
+    CTrafficSign(ETrafficSignCategory traffic_sign_category, QString description) :
+        CTrafficControlElement(ETrafficControlElementType::traffic_sign, description),
         m_traffic_sign_category(traffic_sign_category){}
 
     ETrafficSignCategory get_traffic_sign_category() const {return m_traffic_sign_category;}

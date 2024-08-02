@@ -1,28 +1,29 @@
 #ifndef CROADWAY_H
 #define CROADWAY_H
 
-#include "MapElements/StationaryMapElements/croadelement.h"
+#include "MapElements/StationaryMapElements/RoadElements/croadwayelement.h"
 
 /**
- * @brief The ERoadSurfaceMarking enum stores horizontal roadway markings to enable implementation of lane changes, turning and overtaking
+ * @brief The ERoadSurfaceMarking enum stores roadway markings to enable implementation of lane changing, turning and overtaking
  */
 enum class ERoadSurfaceMarking {none, single_dotted_line, single_continuous, double_continuous_line};
 
 /**
  * @brief The CRoadway class can be used to represent different types of roadways depending on initialization arguments.
  */
-class CRoadway : public CRoadElement
+class CRoadway : public CRoadwayElement
 {
 public:
-    CRoadway(int carriageways_number, int lanes_numer, ERoadSurfaceMarking roadway_surface_marking, QPixmap roadway_pixmap);
+    // POSSIBILITY create lines as graphical masks and switch to builder pattern e.g. create_two_way_roadway().with_dotted_line()
+    static CStationaryMapElement *create_one_way_roadway();
+    static CStationaryMapElement *create_two_way_roadway_with_dotted_line();
+    static CStationaryMapElement *create_two_way_roadway_with_double_continous_line();
 
-    int get_carriageways_numer() const {return m_carriageways_number;}
-    int get_lanes_number() const {return m_lanes_numer;}
     ERoadSurfaceMarking get_roadway_marking() const {return m_roadway_surface_marking;}
 
 private:
-    int m_carriageways_number;
-    int m_lanes_numer;
+    CRoadway(int carriageways_number, int lanes_number, ERoadSurfaceMarking roadway_surface_marking, QPixmap roadway_pixmap,
+             QString description, EMovementPlane movement_plane);
     ERoadSurfaceMarking m_roadway_surface_marking;
 };
 

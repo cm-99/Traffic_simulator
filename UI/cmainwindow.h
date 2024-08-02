@@ -23,13 +23,13 @@ public:
 
 private:
     CApplicationController *m_application_controller;
-    int previous_page_index = 0;
+    int previous_page_index{0};
     QPushButton back_button;
 
     QStackedWidget stacked_widget;
     CHomePage m_home_page;
     CMapSelectionPage m_map_selection_page;
-    CMapCreationPage m_map_creation_page;
+    CMapCreationPage *m_map_creation_page;
 
 public slots:
     //void slot_configure_simulation();

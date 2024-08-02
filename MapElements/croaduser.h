@@ -5,7 +5,8 @@
 #include <QGraphicsPixmapItem>
 
 enum class ERoadUsers {car, pedestrian};
-enum class EMoveDirection {left, right, up, down};
+enum class EHorizontalMoveDirection {left, right};
+enum class EVerticalMoveDirection {up, down};
 
 /**
  * @brief The SRoadUsersBasicParameters struct can be used to pass a full set of CRoadUser's basic parameters (attributes).
@@ -71,7 +72,8 @@ protected:
     bool m_has_designated_destination{false};
     bool m_is_involved_in_accident{false};
     bool m_is_selected{false};
-    EMoveDirection m_move_direction;
+    EHorizontalMoveDirection m_horizontal_move_direction;
+    EVerticalMoveDirection m_vertical_move_direction;
     double m_current_speed{0};
     ERoadUsers m_road_user_type;
 };

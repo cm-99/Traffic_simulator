@@ -13,7 +13,7 @@ public:
     CBaseView(CReadOnlyMap* map_model);
     void set_model(CReadOnlyMap *map_model);
 
-private:
+protected:
     const CReadOnlyMap* m_map_model;
 };
 

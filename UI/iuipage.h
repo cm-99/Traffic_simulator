@@ -15,7 +15,7 @@ public:
     /**
      * @brief restore_to_default is a method to be implemented as a mechanism of restoration to default page condition
      */
-    virtual void restore_to_default() {};
+    virtual void restore_to_default() = 0;
 };
 
 #endif // IUIPAGE_H

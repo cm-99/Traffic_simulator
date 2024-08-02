@@ -20,6 +20,7 @@ public:
     CBaseController(CEditableMap *map_model);
     virtual ~CBaseController() {};
 
+    CBaseView *get_view() const {return m_map_view;}
     void set_model(CEditableMap *map_model);
 
 protected:

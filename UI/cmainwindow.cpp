@@ -3,8 +3,8 @@
 
 #include "cmainwindow.h"
 
-CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_controller)
-    : QMainWindow{parent}
+CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_controller):
+    QMainWindow{parent}
 {
     this -> m_application_controller = application_controller;
     this->menuBar()->setCornerWidget(&back_button);
@@ -12,6 +12,8 @@ CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_co
     back_button.setText("Back");
     back_button.setDisabled(true);
 
+    auto *map_creation_controller = application_controller->get_map_creation_controller();
+    m_map_creation_page = new CMapCreationPage(map_creation_controller, this);
     connect(&back_button, &QPushButton::clicked, this, &CMainWindow::slot_switch_to_previous_page);
     connect(&m_home_page, &CHomePage::signal_map_creator_requested, this, &CMainWindow::slot_show_map_creation_page);
     connect(&m_home_page, &CHomePage::signal_map_selection_requested, this, &CMainWindow::slot_show_map_selection_page);
@@ -19,7 +21,7 @@ CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_co
 
     stacked_widget.addWidget(&m_home_page);
     stacked_widget.addWidget(&m_map_selection_page);
-    stacked_widget.addWidget(&m_map_creation_page);
+    stacked_widget.addWidget(m_map_creation_page);
 
     this->setCentralWidget(&stacked_widget);
     stacked_widget.setCurrentWidget(&m_home_page);
@@ -31,7 +33,7 @@ void CMainWindow::slot_show_map_creation_page()
 {
     back_button.setDisabled(false);
     previous_page_index = stacked_widget.currentIndex();
-    stacked_widget.setCurrentWidget(&m_map_creation_page);
+    stacked_widget.setCurrentWidget(m_map_creation_page);
 }
 
 void CMainWindow::slot_show_map_selection_page()

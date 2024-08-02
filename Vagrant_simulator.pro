@@ -23,6 +23,8 @@ SOURCES += \
     MapElements/RoadUsers/ccar.cpp \
     MapElements/StationaryMapElements/RoadElements/ccrossing.cpp \
     MapElements/StationaryMapElements/RoadElements/croadway.cpp \
+    MapElements/StationaryMapElements/RoadElements/croadwayelement.cpp \
+    MapElements/StationaryMapElements/RoadElements/cturn.cpp \
     MapElements/StationaryMapElements/TrafficControlElements/TrafficSigns/cinformationsign.cpp \
     MapElements/StationaryMapElements/TrafficControlElements/TrafficSigns/cinjuctionsign.cpp \
     MapElements/StationaryMapElements/TrafficControlElements/TrafficSigns/cprohibitionsign.cpp \
@@ -37,9 +39,11 @@ SOURCES += \
     MapElements/StationaryMapElements/ctrafficcontrolelement.cpp \
     MapElements/croaduser.cpp \
     MapElements/cstationarymapelement.cpp \
+    UI/cexpandablewidget.cpp \
     UI/chomepage.cpp \
     UI/cmainwindow.cpp \
     UI/cmapcreationpage.cpp \
+    UI/cmapelementsplacementwidget.cpp \
     UI/cmapselectionpage.cpp \
     UI/iuipage.cpp \
     main.cpp \
@@ -59,6 +63,8 @@ HEADERS += \
     MapElements/RoadUsers/ccar.h \
     MapElements/StationaryMapElements/RoadElements/ccrossing.h \
     MapElements/StationaryMapElements/RoadElements/croadway.h \
+    MapElements/StationaryMapElements/RoadElements/croadwayelement.h \
+    MapElements/StationaryMapElements/RoadElements/cturn.h \
     MapElements/StationaryMapElements/TrafficControlElements/TrafficSigns/cinformationsign.h \
     MapElements/StationaryMapElements/TrafficControlElements/TrafficSigns/cinjuctionsign.h \
     MapElements/StationaryMapElements/TrafficControlElements/TrafficSigns/cprohibitionsign.h \
@@ -73,9 +79,11 @@ HEADERS += \
     MapElements/StationaryMapElements/ctrafficcontrolelement.h \
     MapElements/croaduser.h \
     MapElements/cstationarymapelement.h \
+    UI/cexpandablewidget.h \
     UI/chomepage.h \
     UI/cmainwindow.h \
     UI/cmapcreationpage.h \
+    UI/cmapelementsplacementwidget.h \
     UI/cmapselectionpage.h \
     UI/iuipage.h
 
@@ -89,4 +97,6 @@ RESOURCES += \
 
 DISTFILES += \
     map_elements_graphics/filler.png \
-    map_elements_graphics/pavement.png
+    map_elements_graphics/pavement.png \
+    map_elements_graphics/signs/warning_signs/equivalent_intersection_sign.png \
+    map_elements_graphics/signs/warning_signs/give_way_sign.png

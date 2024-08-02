@@ -1,8 +1,8 @@
 #include "MapElements/StationaryMapElements/TrafficControlElements/ctrafficlight.h"
 
 CTrafficLight::CTrafficLight(ETrafficLightsType traffic_ligths_type, QVector<QPixmap> lights_configurations_pixmaps,
-                             STrafficLightsDuration traffic_lights_duration, bool is_conditional_turn_present) :
-    CTrafficControlElement(ETrafficControlElementType::traffic_lights),
+                             STrafficLightsDuration traffic_lights_duration, QString description, bool is_conditional_turn_present) :
+    CTrafficControlElement(ETrafficControlElementType::traffic_lights, description),
     m_is_conditional_turn_present(is_conditional_turn_present),
     m_traffic_ligths_type(traffic_ligths_type),
     m_traffic_ligths_durations(traffic_lights_duration)
@@ -13,14 +13,28 @@ CTrafficLight::CTrafficLight(ETrafficLightsType traffic_ligths_type, QVector<QPi
     }
 
     m_inactive_lights_pixmap = lights_configurations_pixmaps[0];
-
     m_traffic_lights_cycle = {{ETrafficLightsPhase::red, traffic_lights_duration.m_red_ligth_duration, lights_configurations_pixmaps[1]},
                               {ETrafficLightsPhase::red_and_yellow, traffic_lights_duration.m_red_and_yellow_ligths_duration, lights_configurations_pixmaps[2]},
                               {ETrafficLightsPhase::green, traffic_lights_duration.m_green_ligth_duration, lights_configurations_pixmaps[3]},
                               {ETrafficLightsPhase::yellow, traffic_lights_duration.m_yellow_ligth_duration, lights_configurations_pixmaps[4]}};
 
-    setPixmap(m_traffic_lights_cycle[0].m_traffic_lights_pixmap);
+    setPixmap(m_inactive_lights_pixmap);
     connect(&m_lights_timer, &QTimer::timeout, this, &CTrafficLight::slot_change_lights);
+}
+
+CStationaryMapElement *CTrafficLight::create_collision_possible_traffic_lights()
+{
+    ETrafficLightsType traffic_ligths_type = ETrafficLightsType::collision_possible;
+    STrafficLightsDuration traffic_lights_durations = STrafficLightsDuration{30000, 3000, 30000, 1000};
+    QVector<QPixmap> lights_configurations_pixmaps = {QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_inactive.png"),
+                                                      QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_red.png"),
+                                                      QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_red_and_yellow.png"),
+                                                      QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_green.png"),
+                                                      QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_yellow.png")};
+    QString description = "Collision possible";
+    auto *collision_possible_traffic_lights = new CTrafficLight(traffic_ligths_type, lights_configurations_pixmaps,
+                                                                traffic_lights_durations, description, false);
+    return collision_possible_traffic_lights;
 }
 
 void CTrafficLight::set_is_active(bool is_active)

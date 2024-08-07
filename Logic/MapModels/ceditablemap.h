@@ -11,7 +11,7 @@
 class CEditableMap : public CReadOnlyMap
 {
 public:
-    CEditableMap();
+    CEditableMap(int scene_width, int scene_height);
 
     void fill_map();
     void add_map_boundaries();
@@ -21,6 +21,7 @@ public:
 
     void erase_road_user(CRoadUser *road_user_to_remove);
     void erase_item(QGraphicsItem *item);
+    void erase_stationary_map_element(CStationaryMapElement *item);
 
 private:
     void add_traffic_light(CTrafficLight *new_traffic_light, QPointF pos);

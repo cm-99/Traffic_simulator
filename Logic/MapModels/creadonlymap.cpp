@@ -1,19 +1,21 @@
 #include "creadonlymap.h"
 
-CReadOnlyMap::CReadOnlyMap()
+CReadOnlyMap::CReadOnlyMap(int scene_width, int scene_height)
 {
-    // Scene size - hard-coded for now :/
-    setSceneRect(0, 0, 1920, 1080);
+    setSceneRect(0, 0, scene_width, scene_height);
     m_road_users = new QList<CRoadUser*>;
     m_traffic_lights = new QList<CTrafficLight*>;
+    m_stationary_map_elements = new QList<CStationaryMapElement*>;
 }
 
 CReadOnlyMap::~CReadOnlyMap()
 {
     m_road_users->clear();
-    delete m_road_users;
     m_traffic_lights->clear();
+    m_stationary_map_elements->clear();
+    delete m_road_users;
     delete m_traffic_lights;
+    delete m_stationary_map_elements;
     this->clear();
 }
 

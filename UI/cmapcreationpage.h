@@ -24,6 +24,9 @@ private:
     CMapCreationController* m_map_creation_controller;
     CMapElementsPlacementWidget* m_map_elements_placement_widget;
 
+private slots:
+    void relay_map_saving_request();
+    void relay_simulation_start_request();
 };
 
 #endif // CMAPCREATIONPAGE_H

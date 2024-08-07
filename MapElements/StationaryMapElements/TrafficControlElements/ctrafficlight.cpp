@@ -1,8 +1,8 @@
 #include "MapElements/StationaryMapElements/TrafficControlElements/ctrafficlight.h"
 
 CTrafficLight::CTrafficLight(ETrafficLightsType traffic_ligths_type, QVector<QPixmap> lights_configurations_pixmaps,
-                             STrafficLightsDuration traffic_lights_duration, QString description, bool is_conditional_turn_present) :
-    CTrafficControlElement(ETrafficControlElementType::traffic_lights, description),
+                             STrafficLightsDuration traffic_lights_duration, QString description, bool is_conditional_turn_present, QString pixmap_path) :
+    CTrafficControlElement(ETrafficControlElementType::traffic_lights, description, pixmap_path),
     m_is_conditional_turn_present(is_conditional_turn_present),
     m_traffic_ligths_type(traffic_ligths_type),
     m_traffic_ligths_durations(traffic_lights_duration)
@@ -33,8 +33,38 @@ CStationaryMapElement *CTrafficLight::create_collision_possible_traffic_lights()
                                                       QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_yellow.png")};
     QString description = "Collision possible";
     auto *collision_possible_traffic_lights = new CTrafficLight(traffic_ligths_type, lights_configurations_pixmaps,
-                                                                traffic_lights_durations, description, false);
+                                                                traffic_lights_durations, description, false, "");
     return collision_possible_traffic_lights;
+}
+
+QString CTrafficLight::serialize_as_string()
+{
+    return QString::number(pos().x()) + "," + QString::number(pos().y()) + "," + QString::number(m_traffic_ligths_type);
+}
+
+QString CTrafficLight::serialize_type_as_string()
+{
+    return QString("A") + "_" + QString::number(EStationaryMapElementType::traffic_control_element) + "_" +
+           QString::number(ETrafficControlElementType::traffic_lights);
+}
+
+CStationaryMapElement *CTrafficLight::deserialize_from_string(QString item_serialized_to_string)
+{
+    QStringList item_attributes_list = item_serialized_to_string.split(",");
+    if(item_attributes_list.length() != 3){
+        throw std::invalid_argument("Provided argument item_serialized_to_string is not a valid traffic light serialization");
+        return nullptr;
+    }
+
+    if(item_attributes_list[2].toInt() == ETrafficLightsType::collision_possible){
+        CStationaryMapElement *item = create_collision_possible_traffic_lights();
+        item->setPos(item_attributes_list[0].toInt(), item_attributes_list[1].toInt());
+        return item;
+    }
+    else{
+        //TODO: collision free lights
+        return nullptr;
+    }
 }
 
 void CTrafficLight::set_is_active(bool is_active)

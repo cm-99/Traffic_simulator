@@ -1,6 +1,7 @@
 #ifndef CMAPCREATIONCONTROLLER_H
 #define CMAPCREATIONCONTROLLER_H
 
+#include "Logic/MapImportAndExportManagers/imapimportandexportmanager.h"
 #include "MapElements/StationaryMapElements/RoadElements/ccrossing.h"
 #include "MapElements/StationaryMapElements/RoadElements/cpavement.h"
 #include "MapElements/StationaryMapElements/RoadElements/cpedestriancrossing.h"
@@ -26,27 +27,40 @@ public:
     CMapCreationController(CEditableMap *map_model);
     ~CMapCreationController();
 
-    void set_element_to_place_creation_func(CStationaryMapElement *(*creation_func)(void));
     bool process_wheel_event(QWheelEvent *event);
     void process_mouse_move_event(QMouseEvent *event);
     void process_mouse_press_event(QMouseEvent *event);
 
+    void process_simulation_start_request();
+
+    const inline QList<QString> &get_supported_map_file_formats() const {return m_supported_map_file_formats;}
+    void delegate_map_loading(QString map_file_path);
+    void delegate_map_saving(QString map_file_path);
+
+    void set_element_to_place_creation_func(CStationaryMapElement *(*creation_func)(void));
+
 private:
+    QList<QString> m_supported_map_file_formats;
+    QMap<QString, IMapImportAndExportManager*> m_map_formats_mapped_to_managers;
+    QMap<CStationaryMapElement*, QGraphicsRectItem*> m_elemenets_mapped_to_validation_rects;
+
     CStationaryMapElement *(*m_current_creation_func)(void);
     CStationaryMapElement *m_element_being_placed{nullptr};
     bool m_element_is_being_placed{false};
     bool m_element_is_being_edited{false};
 
     QGraphicsRectItem *m_validation_rect{nullptr};
-    int m_val_rect_size_offset{5};
+    int m_val_rect_size_offset{6};
 
     void add_guide_grid();
+    bool perform_final_map_validation();
 
     void place_element_and_prepare_next(QMouseEvent *event);
     void rotate_element_being_placed(QWheelEvent *event);
     void erase_selected_element(QMouseEvent *event);
 
     void prepare_validation_rect();
+    QGraphicsRectItem* prepare_final_validation_rect(CStationaryMapElement *item);
     void update_validation_rect();
 
     bool is_item_movable(CStationaryMapElement *item);
@@ -65,6 +79,7 @@ private:
     EMapElementPositionValidity get_element_position_validity_in_relation_to_foundations(CStationaryMapElement *element,
                                                                                                          const QList<QGraphicsItem *> &colliding_items);
     EMapElementPositionValidity get_element_position_validity_in_relation_to_surroundings(CStationaryMapElement *element, QPoint placement_position);
+    EMapElementPositionValidity get_element_position_validity_in_relation_to_surroundings_by_serialization(CStationaryMapElement *element, QPoint placement_position);
 
     EMapElementPositionValidity get_traffic_control_element_position_validity_in_relation_to_foundations(CTrafficControlElement *tc_element,
                                                                                                          const QList<QGraphicsItem *> &colliding_items);

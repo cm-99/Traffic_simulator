@@ -3,7 +3,7 @@
 
 #include "MapElements/StationaryMapElements/ctrafficcontrolelement.h"
 
-enum class ETrafficSignCategory {warning_sign, injuction_sign, prohibition_sign, information_sign};
+enum ETrafficSignCategory {warning_sign = 0, injuction_sign = 1, prohibition_sign = 2, information_sign = 3};
 
 /**
  * @brief The CTrafficSign class is a base class for all the classes representing
@@ -14,11 +14,14 @@ enum class ETrafficSignCategory {warning_sign, injuction_sign, prohibition_sign,
 class CTrafficSign : public CTrafficControlElement
 {
 public:
-    CTrafficSign(ETrafficSignCategory traffic_sign_category, QString description) :
-        CTrafficControlElement(ETrafficControlElementType::traffic_sign, description),
+    CTrafficSign(ETrafficSignCategory traffic_sign_category, QString description, QString pixmap_path) :
+        CTrafficControlElement(ETrafficControlElementType::traffic_sign, description, pixmap_path),
         m_traffic_sign_category(traffic_sign_category){}
 
-    ETrafficSignCategory get_traffic_sign_category() const {return m_traffic_sign_category;}
+    virtual QString serialize_as_string()=0;
+    virtual QString serialize_type_as_string()=0;
+
+    inline ETrafficSignCategory get_traffic_sign_category() const {return m_traffic_sign_category;}
 private:
     ETrafficSignCategory m_traffic_sign_category;
 };

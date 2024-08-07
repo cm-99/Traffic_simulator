@@ -12,6 +12,10 @@ class CFiller : public CStationaryMapElement
 {
 public:
     CFiller();
+    //Don't serialize filler, it could be probably dropped from CStationaryMapElement hierarchy
+    QString serialize_as_string() override {return QString();}
+    QString serialize_type_as_string() override {return QString();}
+    static CStationaryMapElement * deserialize_from_string([[maybe_unused]] QString item_serialized_to_string) {return nullptr;}
 };
 
 #endif // CFILLER_H

@@ -3,7 +3,7 @@
 
 #include "MapElements/cstationarymapelement.h"
 
-enum class ETrafficControlElementType {traffic_sign, traffic_lights};
+enum ETrafficControlElementType {traffic_sign = 0, traffic_lights = 1};
 
 /**
  * @brief The CTrafficControlElement class is a base class for classes representing specific traffic control elements of the simulation
@@ -12,10 +12,13 @@ enum class ETrafficControlElementType {traffic_sign, traffic_lights};
 class CTrafficControlElement : public CStationaryMapElement
 {
 public:
-    CTrafficControlElement(ETrafficControlElementType traffic_control_element_type, QString description) :
-        CStationaryMapElement(EStationaryMapElementType::traffic_control_element, description, false),
+    CTrafficControlElement(ETrafficControlElementType traffic_control_element_type, QString description, QString pixmap_path) :
+        CStationaryMapElement(EStationaryMapElementType::traffic_control_element, description, false, pixmap_path),
         m_traffic_control_element_type(traffic_control_element_type) { setZValue(2);}
-    ETrafficControlElementType get_traffic_control_element_type() const {return m_traffic_control_element_type;}
+    inline ETrafficControlElementType get_traffic_control_element_type() const {return m_traffic_control_element_type;}
+
+    virtual QString serialize_as_string()=0;
+    virtual QString serialize_type_as_string()=0;
 
 private:
     ETrafficControlElementType m_traffic_control_element_type;

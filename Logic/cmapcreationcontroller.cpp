@@ -1,7 +1,10 @@
 #include <QWheelEvent>
 #include <QMessageBox>
+#include <QFileInfo>
+#include <QProgressDialog>
 
 #include "cmapcreationcontroller.h"
+#include "Logic/MapImportAndExportManagers/cxmlmapimportandexportmanager.h"
 #include "MapElements/StationaryMapElements/RoadElements/cpavement.h"
 #include "MapElements/StationaryMapElements/RoadElements/cturn.h"
 #include "MapElements/StationaryMapElements/cfiller.h"
@@ -12,6 +15,10 @@ CMapCreationController::CMapCreationController()
     m_map_model->fill_map();
     add_guide_grid();
     m_map_view = new CMapCreationView(m_map_model, this);
+
+    auto *xml_map_manager = new CXMLMapImportAndExportManager();
+    m_map_formats_mapped_to_managers.insert(xml_map_manager->get_supported_format(), xml_map_manager);
+    m_supported_map_file_formats.append(xml_map_manager->get_supported_format());
 }
 
 CMapCreationController::CMapCreationController(CEditableMap *map_model) :
@@ -30,6 +37,81 @@ CMapCreationController::~CMapCreationController()
         delete m_map_view;
     }
 }
+
+void CMapCreationController::delegate_map_loading(QString map_file_path)
+{
+    QFileInfo map_file_info{map_file_path};
+    QString suffix = map_file_info.completeSuffix();
+    if(suffix.contains(".")){
+        suffix = suffix.split(".").last();
+    }
+    QString map_file_format = "*." + suffix;
+
+    auto *map_export_manager = m_map_formats_mapped_to_managers.value(map_file_format);
+    auto map_model = map_export_manager ->load_map(map_file_path);
+    if(map_model == nullptr){
+        QMessageBox::warning(nullptr, "Loading unsuccessful", "Could not open selected file or file format is not supported.");
+        return;
+    }
+    set_model(map_model);
+    m_map_model->fill_map();
+    add_guide_grid();
+}
+
+void CMapCreationController::delegate_map_saving(QString map_file_path)
+{
+    if(!perform_final_map_validation()){
+        return;
+    }
+
+    QFileInfo map_file_info{map_file_path};
+    QString suffix = map_file_info.completeSuffix();
+    if(suffix.contains(".")){
+        suffix = suffix.split(".").last();
+    }
+    QString map_file_format = "*." + suffix;
+    auto *map_import_manager = m_map_formats_mapped_to_managers.value(map_file_format);
+
+    map_import_manager -> save_map(m_map_model, map_file_path);
+}
+
+bool CMapCreationController::perform_final_map_validation()
+{
+    auto map_items = *m_map_model->get_stationary_map_elements();
+    int items_count = map_items.size();
+    QProgressDialog progress_dialog("Validating items...", "Cancel", 0, items_count);
+    progress_dialog.setWindowModality(Qt::WindowModal);
+
+    progress_dialog.show();
+    for(int i = 0; i < items_count; i++){
+        auto item = map_items[i];
+        QPoint placement_pos = QPoint(item->pos().x(), item->pos().y());
+        auto item_pos_validity = get_element_position_validity_in_relation_to_surroundings_by_serialization(item, placement_pos);
+        progress_dialog.setValue(i+1);
+
+        if(item_pos_validity == EMapElementPositionValidity::invalid || item_pos_validity == EMapElementPositionValidity::initially_valid){
+            if(!m_elemenets_mapped_to_validation_rects.contains(item)){
+                auto validation_rect = prepare_final_validation_rect(item);
+                m_elemenets_mapped_to_validation_rects.insert(item, validation_rect);
+            }
+        }
+    }
+    progress_dialog.setValue(items_count);
+
+    if(!m_elemenets_mapped_to_validation_rects.isEmpty()){
+        QMessageBox msg_box;
+        QString text = "Detected " + QString::number(m_elemenets_mapped_to_validation_rects.count()) + " item(s) with incorrect position.\n"
+                        "Verify highlighted items positions before proceeding.";
+        msg_box.setText(text);
+        msg_box.setStandardButtons(QMessageBox::Ok);
+
+        msg_box.exec();
+        return false;
+    }
+
+    return true;
+}
+
 
 void CMapCreationController::add_guide_grid()
 {
@@ -111,10 +193,29 @@ void CMapCreationController::prepare_validation_rect()
     m_map_model->addItem(m_validation_rect);
 }
 
+QGraphicsRectItem* CMapCreationController::prepare_final_validation_rect(CStationaryMapElement *item)
+{
+
+    auto validation_rect = new QGraphicsRectItem(0, 0, item->boundingRect().width() + m_val_rect_size_offset,
+                                              item->boundingRect().height() + m_val_rect_size_offset);
+    validation_rect->setBrush(Qt::yellow);
+    validation_rect->setZValue(4);
+    validation_rect->setOpacity(0.4);
+    validation_rect->setPos(item->pos().x() - m_val_rect_size_offset/2, item->pos().y() - m_val_rect_size_offset/2);
+    m_map_model->addItem(validation_rect);
+
+    if((int)item->rotation()%180 != 0){
+        validation_rect->setTransformOriginPoint(validation_rect->boundingRect().center());
+        validation_rect->setRotation((int)item->rotation());
+    }
+
+    return validation_rect;
+}
+
 void CMapCreationController::set_element_to_place_creation_func(CStationaryMapElement *(*creation_func)())
 {
     if(m_element_is_being_placed){
-        m_map_model->erase_item(m_element_being_placed);
+        m_map_model->erase_stationary_map_element(m_element_being_placed);
     }
     else
         m_element_is_being_placed = true;
@@ -177,21 +278,40 @@ void CMapCreationController::process_mouse_press_event(QMouseEvent *event)
         else{
             auto *item_at_mouse_pos = m_map_model->itemAt(this->m_map_view->mapToScene(event->pos()), this->m_map_view->transform());
             auto *map_element = dynamic_cast<CStationaryMapElement*>(item_at_mouse_pos);
-            if(!is_item_movable(map_element))
+
+            if(map_element != nullptr){
+                auto final_validation_rect = dynamic_cast<QGraphicsRectItem*>(item_at_mouse_pos);
+                if(final_validation_rect != nullptr){
+                    auto element = m_elemenets_mapped_to_validation_rects.key(final_validation_rect);
+                    m_elemenets_mapped_to_validation_rects.remove(element);
+                    map_element = element;
+                    m_map_model->erase_item(final_validation_rect);
+                }
+            }
+            else if(!is_item_movable(map_element)){
                 return;
+            }
 
             m_element_being_placed = map_element;
             m_element_is_being_placed = true;
             m_element_is_being_edited = true;
             prepare_validation_rect();
             update_validation_rect();
-            QPointF center = m_element_being_placed->boundingRect().center();
-            m_validation_rect->setTransformOriginPoint(center);
+
+            m_validation_rect->setTransformOriginPoint(m_validation_rect->boundingRect().center());
             m_validation_rect->setRotation(m_element_being_placed->rotation());
         }
     }
     else if(event->button() == Qt::RightButton){
         erase_selected_element(event);
+    }
+}
+
+void CMapCreationController::process_simulation_start_request()
+{
+    bool validation_successful = perform_final_map_validation();
+    if(!validation_successful){
+        return;
     }
 }
 
@@ -204,6 +324,18 @@ EMapElementPositionValidity CMapCreationController::get_road_element_position_va
         auto map_element = dynamic_cast<CStationaryMapElement*>(colliding_item);
         if(map_element == nullptr || map_element->get_map_element_type() == EStationaryMapElementType::filler)
             continue;
+
+        //TODO: bandain bugfix - somehow in this specific combination roadway is deemed to be colliding with turn,
+        //even though visibly it is not
+        auto turn = dynamic_cast<CTurn*>(colliding_item);
+        if(turn != nullptr){
+            auto roadway = dynamic_cast<CRoadway*>(r_element);
+            if(roadway != nullptr && turn->get_horizontal_direction_possible() == EHorizontalMoveDirection::left
+                && turn->get_vertical_direction_possible() == EVerticalMoveDirection::down){
+                continue;
+            }
+        }
+        ///
 
         return EMapElementPositionValidity::invalid;
     }
@@ -225,9 +357,9 @@ EMapElementPositionValidity CMapCreationController::get_road_element_position_va
     case ERoadElementType::pedestrian_crossing:
         return get_pedestrian_crossing_position_validity_in_relation_to_surroundings(static_cast<CPedestrianCrossing*>(r_element), placement_position);
         break;
+    default:
+        return EMapElementPositionValidity::invalid;
     }
-
-    return EMapElementPositionValidity::invalid;
 }
 
 EMapElementPositionValidity CMapCreationController::get_pavement_position_validity_in_relation_to_surroundings(CPavement *pavement, QPoint placement_position)
@@ -369,7 +501,6 @@ EMapElementPositionValidity CMapCreationController::get_pedestrian_crossing_posi
 EMapElementPositionValidity CMapCreationController::get_roadway_element_position_validity_in_relation_to_surroundings(CRoadwayElement *rw_element, QPoint placement_position)
 {
     auto roadway_element_type = rw_element->get_roadway_element_type();
-
     switch(roadway_element_type){
     case ERoadwayElementType::roadway:
         return get_roadway_position_validity_in_relation_to_surroundings(static_cast<CRoadway*>(rw_element), placement_position);
@@ -515,7 +646,7 @@ EMapElementPositionValidity CMapCreationController::get_turn_position_validity_i
     int preceding_and_following_cells_to_check = ceil(turn_width/default_element_size.width());
 
     QList<QList<QGraphicsItem*>> preceding_and_following_cells_items_lists;
-    QList<QList<QGraphicsItem*>> side_cells_items_lists;
+    // QList<QList<QGraphicsItem*>> side_cells_items_lists;
 
     EVerticalMoveDirection turn_vertical_move_direction = turn->get_vertical_direction_possible();
     EHorizontalMoveDirection turn_horizontal_move_direction = turn->get_horizontal_direction_possible();
@@ -523,51 +654,20 @@ EMapElementPositionValidity CMapCreationController::get_turn_position_validity_i
         if(turn_horizontal_move_direction == EHorizontalMoveDirection::left){
             preceding_and_following_cells_items_lists.append(adjacent_cells_items_lists[0]);
             preceding_and_following_cells_items_lists.append(adjacent_cells_items_lists[3]);
-            side_cells_items_lists.append(adjacent_cells_items_lists[1]);
-            side_cells_items_lists.append(adjacent_cells_items_lists[2]);
         }
         else{
             preceding_and_following_cells_items_lists.append(adjacent_cells_items_lists[2]);
             preceding_and_following_cells_items_lists.append(adjacent_cells_items_lists[1]);
-            side_cells_items_lists.append(adjacent_cells_items_lists[0]);
-            side_cells_items_lists.append(adjacent_cells_items_lists[3]);
         }
     }
     else{
         if(turn_horizontal_move_direction == EHorizontalMoveDirection::left){
             preceding_and_following_cells_items_lists.append(adjacent_cells_items_lists[3]);
             preceding_and_following_cells_items_lists.append(adjacent_cells_items_lists[1]);
-            side_cells_items_lists.append(adjacent_cells_items_lists[0]);
-            side_cells_items_lists.append(adjacent_cells_items_lists[2]);
         }
         else{
             preceding_and_following_cells_items_lists.append(adjacent_cells_items_lists[0]);
             preceding_and_following_cells_items_lists.append(adjacent_cells_items_lists[2]);
-            side_cells_items_lists.append(adjacent_cells_items_lists[1]);
-            side_cells_items_lists.append(adjacent_cells_items_lists[3]);
-        }
-    }
-
-    //Side cells validation
-    for(int i = 0; i < 2; i++){
-        if(side_cells_items_lists[i].size() != 0){
-            for(auto item : side_cells_items_lists[i]){
-                auto road_element = dynamic_cast<CRoadElement*>(item);
-                if(!road_element || road_element == turn)
-                    continue;
-
-                if(road_element->get_road_element_type() == ERoadElementType::pedestrian_crossing){
-                    return EMapElementPositionValidity::invalid;
-                }
-
-                if(road_element->get_road_element_type() == ERoadElementType::roadway_element){
-                    auto roadway_element = static_cast<CRoadwayElement*>(road_element);
-                    auto roadway_element_type = roadway_element->get_roadway_element_type();
-                    if(roadway_element_type == ERoadwayElementType::roadway || roadway_element_type == ERoadwayElementType::turn){
-                        return EMapElementPositionValidity::invalid;
-                    }
-                }
-            }
         }
     }
 
@@ -795,6 +895,47 @@ EMapElementPositionValidity CMapCreationController::get_element_position_validit
     }
 }
 
+EMapElementPositionValidity CMapCreationController::get_element_position_validity_in_relation_to_surroundings_by_serialization(CStationaryMapElement *element, QPoint placement_position)
+{
+    QString type_serialized = element->serialize_type_as_string();
+    QStringList type_splitted = type_serialized.split("_");
+    type_splitted.removeFirst();
+
+    EMapElementPositionValidity position_validity = EMapElementPositionValidity::invalid;
+
+    switch(type_splitted[0].toInt()){
+    case EStationaryMapElementType::traffic_control_element:
+        position_validity =
+            get_traffic_control_element_position_validity_in_relation_to_surroundings(static_cast<CTrafficControlElement*>(element), placement_position);
+        break;
+    case EStationaryMapElementType::road_element:
+        switch(type_splitted[1].toInt()){
+        case ERoadElementType::pavement:
+            position_validity =
+                get_pavement_position_validity_in_relation_to_surroundings(static_cast<CPavement*>(element), placement_position);
+            break;
+        case ERoadElementType::pedestrian_crossing:
+            position_validity =
+                get_pedestrian_crossing_position_validity_in_relation_to_surroundings(static_cast<CPedestrianCrossing*>(element), placement_position);
+            break;
+        case ERoadElementType::roadway_element:
+            switch(type_splitted[2].toInt()){
+            case ERoadwayElementType::roadway:
+                position_validity = get_roadway_position_validity_in_relation_to_surroundings(static_cast<CRoadway*>(element), placement_position);
+                break;
+            case ERoadwayElementType::crossing:
+                position_validity = get_crossing_position_validity_in_relation_to_surroundings(static_cast<CCrossing*>(element), placement_position);
+                break;
+            case ERoadwayElementType::turn:
+                position_validity = get_turn_position_validity_in_relation_to_surroundings(static_cast<CTurn*>(element), placement_position);
+                break;
+            }
+        }
+    }
+
+    return position_validity;
+}
+
 bool CMapCreationController::is_item_movable(CStationaryMapElement *item)
 {
     bool item_is_filler = dynamic_cast<CFiller*>(item) != nullptr;
@@ -850,16 +991,30 @@ void CMapCreationController::erase_selected_element(QMouseEvent *event)
 {
     if(m_element_is_being_placed){
         m_element_is_being_placed = false;
-        m_map_model->erase_item(m_element_being_placed);
+        m_map_model->erase_stationary_map_element(m_element_being_placed);
         m_map_model->erase_item(m_validation_rect);
     }
     else{
         auto *item_at_mouse_pos = m_map_model->itemAt(this->m_map_view->mapToScene(event->pos()), this->m_map_view->transform());
         auto *map_element = dynamic_cast<CStationaryMapElement*>(item_at_mouse_pos);
-        bool item_is_movable = is_item_movable(map_element);
-        if(item_is_movable){
-            m_map_model->erase_item(map_element);
+
+        if(!map_element){
+            auto final_validation_rect = dynamic_cast<QGraphicsRectItem*>(item_at_mouse_pos);
+            if(final_validation_rect){
+                auto element = m_elemenets_mapped_to_validation_rects.key(final_validation_rect);
+                m_elemenets_mapped_to_validation_rects.remove(element);
+                map_element = element;
+                m_map_model->erase_item(final_validation_rect);
+            }
+            else{
+                return;
+            }
         }
+        else if(!is_item_movable(map_element)){
+            return;
+        }
+
+        m_map_model->erase_stationary_map_element(map_element);
     }
 }
 
@@ -932,18 +1087,24 @@ QList<QList<QGraphicsItem*>> CMapCreationController::get_elements_adjacent_cells
 EMapElementPositionValidity CMapCreationController::get_roadway_position_validity_in_relation_to_surroundings(CRoadway *roadway, QPoint placement_position)
 {
     auto roadway_movement_plane = roadway->get_movement_plane();
-    auto roadway_rect = roadway->boundingRect().toRect();
+    auto rodaway_test = roadway->boundingRect();
+    auto roadway_rect = rodaway_test.toRect();
     auto roadway_width = roadway_rect.width();
     auto roadway_height = roadway_rect.height();
     auto default_element_size = CStationaryMapElement::get_default_map_element_size();
 
-    QList<QList<QGraphicsItem*>> adjacent_cells_items_lists =
-        get_elements_adjacent_cells_items(roadway_width, roadway_height, roadway->rotation(), placement_position);
+    int x_offset = 0;
+    int y_offset = 0;
 
-    if((roadway_width != roadway_height) && (int)roadway->rotation()%180 != 0)
-    {
-        roadway_width = roadway_height;
+    if(abs((int)roadway->rotation()) % 180 == 90 && roadway_height != roadway_width){
+        x_offset = abs(roadway_width - roadway_height)/2;
+        y_offset = abs(roadway_width - roadway_height)/2;
     }
+
+    QPoint real_left_corner_pos = QPoint(placement_position.x() + x_offset, placement_position.y()-y_offset);
+
+    QList<QList<QGraphicsItem*>> adjacent_cells_items_lists =
+        get_elements_adjacent_cells_items(roadway_width, roadway_height, roadway->rotation(), real_left_corner_pos);
 
     int preceding_and_following_cells_to_check = ceil(roadway_width/default_element_size.width());
 
@@ -1038,8 +1199,9 @@ EMapElementPositionValidity CMapCreationController::get_roadway_preceding_or_fol
     if(road_element_type == ERoadElementType::roadway_element){
         auto roadway_element = static_cast<CRoadwayElement*>(road_element);
         if(roadway_element->get_carriageways_number() != roadway->get_carriageways_number() ||
-            roadway_element->get_lanes_number() != roadway->get_lanes_number())
+            roadway_element->get_lanes_number() != roadway->get_lanes_number()){
             return EMapElementPositionValidity::invalid;
+        }
 
         if(roadway_element->get_roadway_element_type() == ERoadwayElementType::roadway && roadway_element->get_movement_plane() != roadway_movement_plane){
             return EMapElementPositionValidity::invalid;

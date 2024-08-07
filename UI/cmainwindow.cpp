@@ -62,6 +62,8 @@ void CMainWindow::slot_process_map_loading_request()
 
     if (file_paths.size() > 0)
         map_file_path = file_paths.at(0);
+    else
+        return;
 
     m_application_controller -> delegate_map_loading(map_file_path);
 }

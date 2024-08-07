@@ -14,7 +14,7 @@ public:
     void save_map(const CReadOnlyMap *map_to_save, QString map_file_path);
 
 private:
-    const QString m_supported_format{"*.csv"};
+    const QString m_supported_format{"*.xml"};
 };
 
 #endif // CXMLMAPIMPORTANDEXPORTMANAGER_H

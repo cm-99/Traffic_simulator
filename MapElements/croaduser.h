@@ -4,9 +4,9 @@
 #include <QPointF>
 #include <QGraphicsPixmapItem>
 
-enum class ERoadUsers {car, pedestrian};
-enum class EHorizontalMoveDirection {left, right};
-enum class EVerticalMoveDirection {up, down};
+enum  ERoadUsers {car, pedestrian};
+enum  EHorizontalMoveDirection {left, right};
+enum  EVerticalMoveDirection {up, down};
 
 /**
  * @brief The SRoadUsersBasicParameters struct can be used to pass a full set of CRoadUser's basic parameters (attributes).

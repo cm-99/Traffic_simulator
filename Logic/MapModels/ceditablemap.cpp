@@ -1,7 +1,9 @@
 #include "ceditablemap.h"
 #include "MapElements/StationaryMapElements/cfiller.h"
 
-CEditableMap::CEditableMap() {}
+CEditableMap::CEditableMap(int scene_width, int scene_height):
+    CReadOnlyMap(scene_width, scene_height)
+{}
 
 void CEditableMap::fill_map()
 {
@@ -36,11 +38,15 @@ void CEditableMap::add_road_user(CRoadUser *new_road_user, QPointF pos)
 void CEditableMap::add_stationary_map_element(CStationaryMapElement *new_stationary_map_element, QPointF pos)
 {
     new_stationary_map_element->setPos(pos);
+    //Omit fillers, waste of space
+    if(new_stationary_map_element->get_map_element_type() != EStationaryMapElementType::filler){
+        m_stationary_map_elements->append(new_stationary_map_element);
+    }
     addItem(new_stationary_map_element);
 
     auto *traffic_light = dynamic_cast<CTrafficLight*>(new_stationary_map_element);
     if(traffic_light != nullptr){
-        m_traffic_lights->append(traffic_light);
+        add_traffic_light(traffic_light, pos);
     }
 }
 
@@ -67,6 +73,14 @@ void CEditableMap::erase_traffic_light(CTrafficLight *traffic_light_to_remove)
 
 void CEditableMap::erase_item(QGraphicsItem *item)
 {
+    removeItem(item);
+    delete item;
+}
+
+void CEditableMap::erase_stationary_map_element(CStationaryMapElement *item)
+{
+    m_stationary_map_elements->removeAt(m_stationary_map_elements->indexOf(item));
+
     auto *road_user = dynamic_cast<CRoadUser*>(item);
     if(road_user != nullptr){
         erase_road_user(road_user);

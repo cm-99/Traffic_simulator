@@ -15,6 +15,10 @@ public:
     static CStationaryMapElement *create_double_carriageway_car_turn_with_single_lane();
     static CStationaryMapElement *create_single_carriageway_car_turn_with_single_lane();
 
+    virtual QString serialize_as_string();
+    virtual QString serialize_type_as_string();
+    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
+
     EHorizontalMoveDirection get_horizontal_direction_possible() const {return m_horizontal_direction;}
     EVerticalMoveDirection get_vertical_direction_possible() const {return m_vertical_direction;}
     /**
@@ -29,7 +33,7 @@ public:
     {m_vertical_direction = vertical_direction;}
 
 private:
-    CTurn(int carriageways_number, int lanes_number, QPixmap turn_pixmap, EPermittedRoadUsers permitted_road_users, QString description,
+    CTurn(int carriageways_number, int lanes_number, QPixmap turn_pixmap, QString description, QString pixmap_path,
           EHorizontalMoveDirection horizontal_direction = EHorizontalMoveDirection::right,
           EVerticalMoveDirection vertical_direction = EVerticalMoveDirection::down);
     EHorizontalMoveDirection m_horizontal_direction;

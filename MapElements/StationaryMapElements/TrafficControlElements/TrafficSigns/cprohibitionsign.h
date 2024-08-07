@@ -3,16 +3,40 @@
 
 #include "MapElements/StationaryMapElements/TrafficControlElements/ctrafficsign.h"
 
-enum class EProhibitionSigns {no_entry, stop, left_turn_prohibited, right_turn_prohibited, turning_prohibited, speed_limit};
+enum EProhibitionSigns {no_entry, stop, left_turn_prohibited, right_turn_prohibited, turning_prohibited, speed_limit};
+struct SProhibitionSignType{
+    EProhibitionSigns m_type;
 
+    SProhibitionSignType(EProhibitionSigns type){
+        m_type = type;
+    }
+
+    SProhibitionSignType(QString type){
+        int type_number = type.toInt();
+        if(type_number > 5){
+            throw std::invalid_argument("Provided argument type does not translate to any known EProhibitionSigns enum member");
+        }
+        else{
+            m_type = static_cast<EProhibitionSigns>(type_number);
+        }
+    }
+
+    QString type_number_as_string(){
+        return QString::number(m_type);
+    }
+};
 /**
  * @brief The CProhibitionSign class can be used to create graphical representations of prohibition signs included in CProhibitionSign.
  */
 class CProhibitionSign : public CTrafficSign
 {
 public:
-    EProhibitionSigns get_sign_type() {return m_sign_type;}
+    SProhibitionSignType get_sign_type() {return m_sign_type;}
     int get_speed_limit() const {return m_speed_limit;}
+
+    virtual QString serialize_as_string();
+    virtual QString serialize_type_as_string();
+    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
 
     static CStationaryMapElement *create_no_entry_sign();
     static CStationaryMapElement *create_stop_sign();
@@ -23,9 +47,9 @@ public:
     static CStationaryMapElement *create_speed_limit_30_sign();
 
 private:
-    CProhibitionSign(QPixmap sign_pixmap, EProhibitionSigns sign_type, QString description, int speed_limit);
+    CProhibitionSign(QPixmap sign_pixmap, SProhibitionSignType sign_type, QString description, int speed_limit, QString pixmap_path);
 
-    EProhibitionSigns m_sign_type;
+    SProhibitionSignType m_sign_type;
     int m_speed_limit{-1};
 };
 #endif // CPROHIBITIONSIGN_H

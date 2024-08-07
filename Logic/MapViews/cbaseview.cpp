@@ -3,9 +3,6 @@
 CBaseView::CBaseView(CReadOnlyMap *map_model)
 {
     set_model(map_model);
-    setScene(map_model);
-    //setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 }
 
 void CBaseView::set_model(CReadOnlyMap *map_model)

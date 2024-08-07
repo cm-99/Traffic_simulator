@@ -31,7 +31,7 @@ struct STrafficLightsDuration{
  * collision_possible   - S1
  * collision_free       - S3
  */
-enum class ETrafficLightsType {collision_possible, collision_free};
+enum ETrafficLightsType {collision_possible = 0, collision_free = 1};
 /**
  * @brief The ETrafficLightsPhase is used to store information about traffic lights phase.
  */
@@ -67,12 +67,16 @@ class CTrafficLight : public QObject, public CTrafficControlElement
 public:
 
     static CStationaryMapElement *create_collision_possible_traffic_lights();
-    const STrafficLightsDuration& get_traffic_lights_durations() const {return m_traffic_ligths_durations;}
-    int get_lights_simulation_offset_time() const {return m_lights_simulation_offset_time;}
-    ETrafficLightsPhase get_current_lights_phase() const {return m_current_lights_phase;}
+    const inline STrafficLightsDuration& get_traffic_lights_durations() const {return m_traffic_ligths_durations;}
+    inline int get_lights_simulation_offset_time() const {return m_lights_simulation_offset_time;}
+    inline ETrafficLightsPhase get_current_lights_phase() const {return m_current_lights_phase;}
+
+    virtual QString serialize_as_string();
+    virtual QString serialize_type_as_string();
+    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
 
     void set_is_active(bool is_active);
-    void set_ligths_durations(STrafficLightsDuration traffic_ligths_durations) {m_traffic_ligths_durations = traffic_ligths_durations;}
+    inline void set_ligths_durations(STrafficLightsDuration traffic_ligths_durations) {m_traffic_ligths_durations = traffic_ligths_durations;}
     /**
      * @brief set_lights_simulation_offset is a method used to synchronize lights.
      * It's only important when starting or restarting simulation, mainly for the purpose of synchronizing lights on one crossing.
@@ -99,7 +103,7 @@ private:
      * @param is_conditional_turn_present
      */
     CTrafficLight(ETrafficLightsType traffic_ligths_type, QVector<QPixmap> lights_configurations_pixmaps,
-                  STrafficLightsDuration traffic_lights_duration, QString description, bool is_conditional_turn_present = false);
+                  STrafficLightsDuration traffic_lights_duration, QString description, bool is_conditional_turn_present = false, QString pixmap_path = "");
 
     bool m_is_conditional_turn_present;
     ETrafficLightsType m_traffic_ligths_type;

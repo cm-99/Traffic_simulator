@@ -20,19 +20,24 @@ class CMainWindow : public QMainWindow
 public:
     explicit CMainWindow(QWidget *parent = nullptr, CApplicationController *application_controller = nullptr);
     ~CMainWindow();
+    void relay_simulation_configuration_request(QString map_file_path);
+
 
 private:
     CApplicationController *m_application_controller;
     int previous_page_index{0};
-    QPushButton back_button;
+    QPushButton m_back_button;
+    QPushButton m_home_page_button;
 
     QStackedWidget stacked_widget;
     CHomePage m_home_page;
     CMapSelectionPage m_map_selection_page;
-    CMapCreationPage *m_map_creation_page;
+    CMapCreationPage m_map_creation_page;
 
 public slots:
-    //void slot_configure_simulation();
+    void slot_open_map_in_creator(QString map_file_path);
+
+private slots:
     /**
      * @brief slot_show_map_creation_page switches current central widget of CMainWindow object to m_map_creation_page.
      */
@@ -48,6 +53,7 @@ public slots:
     void slot_process_map_loading_request();
 
     void slot_switch_to_previous_page();
+    void slot_back_to_home_page();
 };
 
 #endif // CMAINWINDOW_H

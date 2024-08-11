@@ -11,7 +11,7 @@ public:
     virtual ~IMapImportAndExportManager() {};
     //TODO: wrap in unique_ptr?
     virtual CEditableMap* load_map(QString map_file_path) = 0;
-    virtual void save_map(const CReadOnlyMap *map_to_save, QString map_file_path) = 0;
+    virtual bool save_map(const CReadOnlyMap *map_to_save, QString map_file_path) = 0;
 };
 
 #endif // IMAPIMPORTANDEXPORTMANAGER_H

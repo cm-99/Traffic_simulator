@@ -11,14 +11,14 @@ CTurn::CTurn(int carriageways_number, int lanes_number, QPixmap turn_pixmap, QSt
 
 CStationaryMapElement *CTurn::create_double_carriageway_car_turn_with_single_lane()
 {
-    return new CTurn(2, 1, QPixmap(":/map_elements_graphics/turns/double_carriageway_single_lane_turn.png"),
-    "Double carriageway turn with single lane", ":/map_elements_graphics/turns/double_carriageway_single_lane_turn.png");
+    return new CTurn(2, 1, QPixmap(":graphics/map_elements_graphics/turns/double_carriageway_single_lane_turn.png"),
+    "Double carriageway turn with single lane", ":graphics/map_elements_graphics/turns/double_carriageway_single_lane_turn.png");
 }
 
 CStationaryMapElement *CTurn::create_single_carriageway_car_turn_with_single_lane()
 {
-    return new CTurn(1, 1, QPixmap(":/map_elements_graphics/turns/single_carriageway_single_lane_turn.png"),
-                     "Single carriageway turn with single lane", ":/map_elements_graphics/turns/single_carriageway_single_lane_turn.png");
+    return new CTurn(1, 1, QPixmap(":graphics/map_elements_graphics/turns/single_carriageway_single_lane_turn.png"),
+                     "Single carriageway turn with single lane", ":graphics/map_elements_graphics/turns/single_carriageway_single_lane_turn.png");
 }
 
 QString CTurn::serialize_as_string()

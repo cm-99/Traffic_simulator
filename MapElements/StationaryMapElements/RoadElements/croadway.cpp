@@ -9,20 +9,20 @@ CRoadway::CRoadway(int carriageways_number, int lanes_number, ERoadSurfaceMarkin
 
 CStationaryMapElement *CRoadway::create_one_way_roadway()
 {
-    return new CRoadway(1, 1, ERoadSurfaceMarking::none, QPixmap(":/map_elements_graphics/roadways/one_way_roadway.png"),
-                        "One way roadway", EMovementPlane::vertical, ":/map_elements_graphics/roadways/one_way_roadway.png");
+    return new CRoadway(1, 1, ERoadSurfaceMarking::none, QPixmap(":graphics/map_elements_graphics/roadways/one_way_roadway.png"),
+                        "One way roadway", EMovementPlane::vertical, ":graphics/map_elements_graphics/roadways/one_way_roadway.png");
 }
 
 CStationaryMapElement *CRoadway::create_two_way_roadway_with_dotted_line()
 {
-    return new CRoadway(2, 1, ERoadSurfaceMarking::single_dotted_line, QPixmap(":/map_elements_graphics/roadways/two_way_roadway_dotted_line.png"),
-                        "Two way roadway with dotted line", EMovementPlane::vertical, ":/map_elements_graphics/roadways/two_way_roadway_dotted_line.png");
+    return new CRoadway(2, 1, ERoadSurfaceMarking::single_dotted_line, QPixmap(":graphics/map_elements_graphics/roadways/two_way_roadway_dotted_line.png"),
+                        "Two way roadway with dotted line", EMovementPlane::vertical, ":graphics/map_elements_graphics/roadways/two_way_roadway_dotted_line.png");
 }
 
 CStationaryMapElement *CRoadway::create_two_way_roadway_with_double_continous_line()
 {
-    return new CRoadway(2, 1, ERoadSurfaceMarking::double_continuous_line, QPixmap(":/map_elements_graphics/roadways/two_way_roadway_double_continuous_line.png"),
-                "Two way roadway with double continous line", EMovementPlane::vertical, ":/map_elements_graphics/roadways/two_way_roadway_double_continuous_line.png");
+    return new CRoadway(2, 1, ERoadSurfaceMarking::double_continuous_line, QPixmap(":graphics/map_elements_graphics/roadways/two_way_roadway_double_continuous_line.png"),
+                "Two way roadway with double continous line", EMovementPlane::vertical, ":graphics/map_elements_graphics/roadways/two_way_roadway_double_continuous_line.png");
 }
 
 QString CRoadway::serialize_as_string()

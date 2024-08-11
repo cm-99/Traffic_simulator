@@ -10,24 +10,24 @@ CInjuctionSign::CInjuctionSign(QPixmap sign_pixmap, SInjuctionSignType sign_type
 CStationaryMapElement *CInjuctionSign::create_drive_straight_sign()
 {
     CInjuctionSign *drive_straight_sign =
-        new CInjuctionSign(QPixmap(QPixmap(":/map_elements_graphics/signs/injuction_signs/drive_straight_sign.png")),
-                           EInjuctionSigns::drive_straight, "Drive straight", ":/map_elements_graphics/signs/injuction_signs/drive_straight_sign.png");
+        new CInjuctionSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/injuction_signs/drive_straight_sign.png")),
+                           EInjuctionSigns::drive_straight, "Drive straight", ":graphics/map_elements_graphics/signs/injuction_signs/drive_straight_sign.png");
     return drive_straight_sign;
 }
 
 CStationaryMapElement *CInjuctionSign::create_turn_left_sign()
 {
     CInjuctionSign *turn_left_sign =
-        new CInjuctionSign(QPixmap(QPixmap(":/map_elements_graphics/signs/injuction_signs/turn_left_sign.png")),
-                           EInjuctionSigns::turn_left, "Turn left", ":/map_elements_graphics/signs/injuction_signs/turn_left_sign.png");
+        new CInjuctionSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/injuction_signs/turn_left_sign.png")),
+                           EInjuctionSigns::turn_left, "Turn left", ":graphics/map_elements_graphics/signs/injuction_signs/turn_left_sign.png");
     return turn_left_sign;
 }
 
 CStationaryMapElement *CInjuctionSign::create_turn_right_sign()
 {
     CInjuctionSign *turn_right_sign =
-        new CInjuctionSign(QPixmap(QPixmap(":/map_elements_graphics/signs/injuction_signs/turn_right_sign.png")),
-                           EInjuctionSigns::turn_right, "Turn right", ":/map_elements_graphics/signs/injuction_signs/turn_right_sign.png");
+        new CInjuctionSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/injuction_signs/turn_right_sign.png")),
+                           EInjuctionSigns::turn_right, "Turn right", ":graphics/map_elements_graphics/signs/injuction_signs/turn_right_sign.png");
     return turn_right_sign;
 }
 

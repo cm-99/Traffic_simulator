@@ -9,9 +9,12 @@
 #include "MapElements/StationaryMapElements/RoadElements/cturn.h"
 #include "MapElements/StationaryMapElements/cfiller.h"
 #include "MapViews/cmapcreationview.h"
+#include "capplicationcontroller.h"
 
-CMapCreationController::CMapCreationController()
+CMapCreationController::CMapCreationController(CApplicationController *application_controller):
+    CBaseController(application_controller)
 {
+    m_map_model = new CEditableMap(1920, 1080);
     m_map_model->fill_map();
     add_guide_grid();
     m_map_view = new CMapCreationView(m_map_model, this);
@@ -19,12 +22,6 @@ CMapCreationController::CMapCreationController()
     auto *xml_map_manager = new CXMLMapImportAndExportManager();
     m_map_formats_mapped_to_managers.insert(xml_map_manager->get_supported_format(), xml_map_manager);
     m_supported_map_file_formats.append(xml_map_manager->get_supported_format());
-}
-
-CMapCreationController::CMapCreationController(CEditableMap *map_model) :
-    CBaseController(map_model)
-{
-    CMapCreationController();
 }
 
 CMapCreationController::~CMapCreationController()
@@ -38,30 +35,23 @@ CMapCreationController::~CMapCreationController()
     }
 }
 
-void CMapCreationController::delegate_map_loading(QString map_file_path)
+bool CMapCreationController::load_map_into_creator(QString map_file_path)
 {
-    QFileInfo map_file_info{map_file_path};
-    QString suffix = map_file_info.completeSuffix();
-    if(suffix.contains(".")){
-        suffix = suffix.split(".").last();
+    auto map_model = load_map_from_file(map_file_path);
+    if(!map_model){
+        return false;
     }
-    QString map_file_format = "*." + suffix;
 
-    auto *map_export_manager = m_map_formats_mapped_to_managers.value(map_file_format);
-    auto map_model = map_export_manager ->load_map(map_file_path);
-    if(map_model == nullptr){
-        QMessageBox::warning(nullptr, "Loading unsuccessful", "Could not open selected file or file format is not supported.");
-        return;
-    }
-    set_model(map_model);
-    m_map_model->fill_map();
     add_guide_grid();
+    set_model(map_model);
+
+    return true;
 }
 
-void CMapCreationController::delegate_map_saving(QString map_file_path)
+bool CMapCreationController::delegate_map_saving(QString map_file_path)
 {
     if(!perform_final_map_validation()){
-        return;
+        return false;
     }
 
     QFileInfo map_file_info{map_file_path};
@@ -72,7 +62,17 @@ void CMapCreationController::delegate_map_saving(QString map_file_path)
     QString map_file_format = "*." + suffix;
     auto *map_import_manager = m_map_formats_mapped_to_managers.value(map_file_format);
 
-    map_import_manager -> save_map(m_map_model, map_file_path);
+    return map_import_manager -> save_map(m_map_model, map_file_path);
+}
+
+void CMapCreationController::clear_map()
+{
+    for (auto [key, value] : m_elemenets_mapped_to_validation_rects.asKeyValueRange()) {
+        m_map_model->erase_item(value);
+    }
+    m_elemenets_mapped_to_validation_rects.clear();
+
+    m_map_model->clear_stationary_map_elements();
 }
 
 bool CMapCreationController::perform_final_map_validation()
@@ -89,7 +89,7 @@ bool CMapCreationController::perform_final_map_validation()
         auto item_pos_validity = get_element_position_validity_in_relation_to_surroundings_by_serialization(item, placement_pos);
         progress_dialog.setValue(i+1);
 
-        if(item_pos_validity == EMapElementPositionValidity::invalid || item_pos_validity == EMapElementPositionValidity::initially_valid){
+        if(item_pos_validity == EMapElementPositionValidity::initially_valid || item_pos_validity == EMapElementPositionValidity::invalid){
             if(!m_elemenets_mapped_to_validation_rects.contains(item)){
                 auto validation_rect = prepare_final_validation_rect(item);
                 m_elemenets_mapped_to_validation_rects.insert(item, validation_rect);
@@ -279,13 +279,17 @@ void CMapCreationController::process_mouse_press_event(QMouseEvent *event)
             auto *item_at_mouse_pos = m_map_model->itemAt(this->m_map_view->mapToScene(event->pos()), this->m_map_view->transform());
             auto *map_element = dynamic_cast<CStationaryMapElement*>(item_at_mouse_pos);
 
-            if(map_element != nullptr){
+            if(map_element == nullptr){
                 auto final_validation_rect = dynamic_cast<QGraphicsRectItem*>(item_at_mouse_pos);
+
                 if(final_validation_rect != nullptr){
                     auto element = m_elemenets_mapped_to_validation_rects.key(final_validation_rect);
                     m_elemenets_mapped_to_validation_rects.remove(element);
                     map_element = element;
                     m_map_model->erase_item(final_validation_rect);
+                }
+                else{
+                    return;
                 }
             }
             else if(!is_item_movable(map_element)){
@@ -307,12 +311,40 @@ void CMapCreationController::process_mouse_press_event(QMouseEvent *event)
     }
 }
 
+CEditableMap *CMapCreationController::load_map_from_file(QString map_file_path)
+{
+    QFileInfo map_file_info{map_file_path};
+    QString suffix = map_file_info.completeSuffix();
+    if(suffix.contains(".")){
+        suffix = suffix.split(".").last();
+    }
+    QString map_file_format = "*." + suffix;
+
+    auto *map_export_manager = m_map_formats_mapped_to_managers.value(map_file_format);
+    auto map_model = map_export_manager ->load_map(map_file_path);
+    if(map_model == nullptr){
+        QMessageBox::warning(nullptr, "Loading unsuccessful", "Could not open selected file or file format is not supported.");
+        return nullptr;
+    }
+    map_model->fill_map();
+
+    return map_model;
+}
+
 void CMapCreationController::process_simulation_start_request()
 {
-    bool validation_successful = perform_final_map_validation();
-    if(!validation_successful){
+
+    //TODO: Implement map copy constructor <=> implement copy constructors for all map elements :/
+    QString temp_map_file_path = qApp->applicationDirPath() + "/temp.xml";
+
+    if(!delegate_map_saving(temp_map_file_path)){
         return;
     }
+
+    bool simulation_started_successfully = m_application_controller->process_simulation_start_request(temp_map_file_path);
+
+    QFile temp_file(temp_map_file_path);
+    temp_file.remove();
 }
 
 EMapElementPositionValidity CMapCreationController::get_road_element_position_validity_in_relation_to_foundations(CRoadElement *r_element, const QList<QGraphicsItem *> &colliding_items)
@@ -998,9 +1030,10 @@ void CMapCreationController::erase_selected_element(QMouseEvent *event)
         auto *item_at_mouse_pos = m_map_model->itemAt(this->m_map_view->mapToScene(event->pos()), this->m_map_view->transform());
         auto *map_element = dynamic_cast<CStationaryMapElement*>(item_at_mouse_pos);
 
-        if(!map_element){
+        if(map_element == nullptr){
             auto final_validation_rect = dynamic_cast<QGraphicsRectItem*>(item_at_mouse_pos);
-            if(final_validation_rect){
+
+            if(final_validation_rect != nullptr){
                 auto element = m_elemenets_mapped_to_validation_rects.key(final_validation_rect);
                 m_elemenets_mapped_to_validation_rects.remove(element);
                 map_element = element;

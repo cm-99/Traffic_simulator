@@ -10,24 +10,24 @@ CInformationSign::CInformationSign(QPixmap sign_pixmap, SInformationSignType sig
 CStationaryMapElement *CInformationSign::create_priority_road_sign()
 {
     CInformationSign *priority_road_sign =
-        new CInformationSign(QPixmap(QPixmap(":/map_elements_graphics/signs/information_signs/priority_road_sign.png")),
-                           EInformationSigns::priority_road, "Priority road", ":/map_elements_graphics/signs/information_signs/priority_road_sign.png");
+        new CInformationSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/information_signs/priority_road_sign.png")),
+                           EInformationSigns::priority_road, "Priority road", ":graphics/map_elements_graphics/signs/information_signs/priority_road_sign.png");
     return priority_road_sign;
 }
 
 CStationaryMapElement *CInformationSign::create_pedestrian_crossing_sign()
 {
     CInformationSign *pedestrian_crossing_sign =
-        new CInformationSign(QPixmap(QPixmap(":/map_elements_graphics/signs/information_signs/pedestrian_crossing_sign.png")),
-                           EInformationSigns::pedestrian_crossing_sign, "Pedestrian crossing", ":/map_elements_graphics/signs/information_signs/pedestrian_crossing_sign.png");
+        new CInformationSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/information_signs/pedestrian_crossing_sign.png")),
+                           EInformationSigns::pedestrian_crossing_sign, "Pedestrian crossing", ":graphics/map_elements_graphics/signs/information_signs/pedestrian_crossing_sign.png");
     return pedestrian_crossing_sign;
 }
 
 CStationaryMapElement *CInformationSign::create_one_wady_road_sign()
 {
     CInformationSign *one_wady_road_sign =
-        new CInformationSign(QPixmap(QPixmap(":/map_elements_graphics/signs/information_signs/one_way_road_sign.png")),
-                            EInformationSigns::one_way_road, "One way road", ":/map_elements_graphics/signs/information_signs/one_way_road_sign.png");
+        new CInformationSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/information_signs/one_way_road_sign.png")),
+                            EInformationSigns::one_way_road, "One way road", ":graphics/map_elements_graphics/signs/information_signs/one_way_road_sign.png");
     return one_wady_road_sign;
 }
 

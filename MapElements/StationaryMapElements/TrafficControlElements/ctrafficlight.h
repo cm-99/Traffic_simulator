@@ -7,7 +7,7 @@
 #include "MapElements/StationaryMapElements/ctrafficcontrolelement.h"
 
 /**
- * @brief The STrafficLightsDuration struct stores information regarding the duration of each traffic lights configuration in miliseconds.
+ * @brief The STrafficLightsDuration struct stores information regarding the duration of each traffic lights configuration in seconds.
  */
 struct STrafficLightsDuration{
     int m_green_ligth_duration;

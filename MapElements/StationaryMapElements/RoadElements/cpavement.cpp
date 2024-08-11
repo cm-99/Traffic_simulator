@@ -2,7 +2,8 @@
 
 CStationaryMapElement *CPavement::create_pavement()
 {
-    return new CPavement(QPixmap(":/map_elements_graphics/crossings/pavement_crossing.png"), "Pavement", EMovementPlane::any, ":/map_elements_graphics/crossings/pavement_crossing.png");
+    return new CPavement(QPixmap(":graphics/map_elements_graphics/crossings/pavement_crossing.png"), "Pavement",
+                         EMovementPlane::any, ":graphics/map_elements_graphics/crossings/pavement_crossing.png");
 }
 
 CPavement::CPavement(QPixmap pavement_pixmap, QString description, EMovementPlane movement_plane, QString pixmap_path) :

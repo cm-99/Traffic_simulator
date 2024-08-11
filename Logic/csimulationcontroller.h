@@ -9,12 +9,11 @@
  * The simulation is performed in discrete steps determined by a timer, the timeout of which is transmitted to the model
  * to update the state of the simulation.
  */
+
 class CSimulationController : public CBaseController
 {
 public:
-    explicit CSimulationController() {};
-    CSimulationController (CEditableMap *map_model);
-
+    CSimulationController (CApplicationController *application_controller, CEditableMap *map_model);
     ~CSimulationController();
 };
 

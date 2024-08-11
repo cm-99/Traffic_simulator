@@ -23,19 +23,20 @@ enum class EMapElementPositionValidity{valid, invalid, initially_valid};
 class CMapCreationController : public CBaseController
 {
 public:
-    explicit CMapCreationController();
-    CMapCreationController(CEditableMap *map_model);
+    explicit CMapCreationController(CApplicationController *application_controller);
     ~CMapCreationController();
 
     bool process_wheel_event(QWheelEvent *event);
     void process_mouse_move_event(QMouseEvent *event);
     void process_mouse_press_event(QMouseEvent *event);
 
-    void process_simulation_start_request();
-
     const inline QList<QString> &get_supported_map_file_formats() const {return m_supported_map_file_formats;}
-    void delegate_map_loading(QString map_file_path);
-    void delegate_map_saving(QString map_file_path);
+    CEditableMap *load_map_from_file(QString map_file_path);
+
+    bool load_map_into_creator(QString map_file_path);
+    bool delegate_map_saving(QString map_file_path);
+    void clear_map();
+    void process_simulation_start_request();
 
     void set_element_to_place_creation_func(CStationaryMapElement *(*creation_func)(void));
 
@@ -97,7 +98,8 @@ private:
     EMapElementPositionValidity get_roadway_side_cell_item_validity(CRoadway *roadway, QGraphicsItem *item);
 
     EMapElementPositionValidity get_crossing_position_validity_in_relation_to_surroundings(CCrossing *crossing, QPoint placement_position);
-    EMapElementPositionValidity get_turn_position_validity_in_relation_to_surroundings(CTurn *turn, QPoint placement_position);
+    EMapElementPositionValidity get_turn_position_validity_in_relation_to_surroundings(CTurn *turn, QPoint placement_position); 
+
 };
 
 #endif // CMAPCREATIONCONTROLLER_H

@@ -45,6 +45,8 @@ SOURCES += \
     UI/cmapcreationpage.cpp \
     UI/cmapelementsplacementwidget.cpp \
     UI/cmapselectionpage.cpp \
+    UI/croadusersparametersinputwidget.cpp \
+    UI/ctrafficlightsdurationinputwidget.cpp \
     UI/iuipage.cpp \
     main.cpp \
 
@@ -85,6 +87,8 @@ HEADERS += \
     UI/cmapcreationpage.h \
     UI/cmapelementsplacementwidget.h \
     UI/cmapselectionpage.h \
+    UI/croadusersparametersinputwidget.h \
+    UI/ctrafficlightsdurationinputwidget.h \
     UI/iuipage.h
 
 # Default rules for deployment.
@@ -96,7 +100,4 @@ RESOURCES += \
     graphics.qrc
 
 DISTFILES += \
-    map_elements_graphics/filler.png \
-    map_elements_graphics/pavement.png \
-    map_elements_graphics/signs/warning_signs/equivalent_intersection_sign.png \
-    map_elements_graphics/signs/warning_signs/give_way_sign.png
+

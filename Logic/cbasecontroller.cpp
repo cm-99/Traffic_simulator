@@ -1,14 +1,13 @@
 #include "cbasecontroller.h"
 
-//TODO: Do poprawy - CBaseController nie powinien jednak tworzyć mapy
-CBaseController::CBaseController()
-{
-    m_map_model = new CEditableMap(1920, 1080);
-}
+CBaseController::CBaseController(CApplicationController *application_controller):
+    m_application_controller(application_controller)
+{}
 
-CBaseController::CBaseController(CEditableMap *map_model)
+CBaseController::CBaseController(CApplicationController *application_controller, CEditableMap *map_model):
+    m_application_controller(application_controller)
 {
-    m_map_model = map_model;
+    set_model(map_model);
 }
 
 void CBaseController::set_model(CEditableMap *map_model)

@@ -25,12 +25,12 @@ CTrafficLight::CTrafficLight(ETrafficLightsType traffic_ligths_type, QVector<QPi
 CStationaryMapElement *CTrafficLight::create_collision_possible_traffic_lights()
 {
     ETrafficLightsType traffic_ligths_type = ETrafficLightsType::collision_possible;
-    STrafficLightsDuration traffic_lights_durations = STrafficLightsDuration{30000, 3000, 30000, 1000};
-    QVector<QPixmap> lights_configurations_pixmaps = {QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_inactive.png"),
-                                                      QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_red.png"),
-                                                      QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_red_and_yellow.png"),
-                                                      QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_green.png"),
-                                                      QPixmap(":/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_yellow.png")};
+    STrafficLightsDuration traffic_lights_durations = STrafficLightsDuration{58, 3, 58, 1};
+    QVector<QPixmap> lights_configurations_pixmaps = {QPixmap(":graphics/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_inactive.png"),
+                                                      QPixmap(":graphics/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_red.png"),
+                                                      QPixmap(":graphics/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_red_and_yellow.png"),
+                                                      QPixmap(":graphics/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_green.png"),
+                                                      QPixmap(":graphics/map_elements_graphics/traffic_lights/collision_possible_traffic_lights_yellow.png")};
     QString description = "Collision possible";
     auto *collision_possible_traffic_lights = new CTrafficLight(traffic_ligths_type, lights_configurations_pixmaps,
                                                                 traffic_lights_durations, description, false, "");

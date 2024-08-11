@@ -27,6 +27,7 @@ private:
 private slots:
     void relay_map_saving_request();
     void relay_simulation_start_request();
+    void process_map_clearing_request();
 };
 
 #endif // CMAPCREATIONPAGE_H

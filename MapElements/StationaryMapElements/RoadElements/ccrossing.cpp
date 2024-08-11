@@ -8,14 +8,14 @@ CCrossing::CCrossing(int carriageways_number, int lanes_number, QPixmap crossing
 
 CStationaryMapElement *CCrossing::create_single_carriageway_car_crossing()
 {
-    return new CCrossing(1, 1, QPixmap(":/map_elements_graphics/crossings/single_carriageway_crossing.png"), EPermittedRoadUsers::cars,
-                "Single carriageway crossing", ":/map_elements_graphics/crossings/single_carriageway_crossing.png");
+    return new CCrossing(1, 1, QPixmap(":graphics/map_elements_graphics/crossings/single_carriageway_crossing.png"), EPermittedRoadUsers::cars,
+                "Single carriageway crossing", ":graphics/map_elements_graphics/crossings/single_carriageway_crossing.png");
 }
 
 CStationaryMapElement *CCrossing::create_double_carriageway_car_crossing()
 {
-    return new CCrossing(2, 1, QPixmap(":/map_elements_graphics/crossings/double_carriageway_crossing.png"), EPermittedRoadUsers::cars,
-                        "Double carriageway crossing", ":/map_elements_graphics/crossings/double_carriageway_crossing.png");
+    return new CCrossing(2, 1, QPixmap(":graphics/map_elements_graphics/crossings/double_carriageway_crossing.png"), EPermittedRoadUsers::cars,
+                        "Double carriageway crossing", ":graphics/map_elements_graphics/crossings/double_carriageway_crossing.png");
 }
 
 QString CCrossing::serialize_as_string()

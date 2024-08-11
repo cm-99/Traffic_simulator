@@ -105,7 +105,6 @@ CMapElementsPlacementWidget::CMapElementsPlacementWidget(CMapCreationPage *map_c
     road_elements_widgets_container->setLayout(road_elements_widgets_layout);
     road_elements_layout->addWidget(road_elements_widgets_container);
     road_elements_expandable_widget->set_content_layout(*road_elements_layout);
-    //road_elements_widgets_container->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Maximum);
 
     QFrame *traffic_control_elements_widgets_container = new QFrame(this);
     CExpandableWidget *traffic_lights_elements_expandable_widget =
@@ -133,7 +132,6 @@ CMapElementsPlacementWidget::CMapElementsPlacementWidget(CMapCreationPage *map_c
     traffic_signs_elements_widgets_container->setLayout(traffic_signs_widgets_layout);
     traffic_signs_layout->addWidget(traffic_signs_elements_widgets_container);
     traffic_signs_elements_expandable_widget->set_content_layout(*traffic_signs_layout);
-    //traffic_control_elements_widgets_container->setSizePolicy(QSizePolicy::Policy::Preferred, QSizePolicy::Policy::Maximum);
 
     QVBoxLayout *traffic_control_elements_layout = new QVBoxLayout();
     QVBoxLayout *traffic_control_elements_widgets_layout = new QVBoxLayout();

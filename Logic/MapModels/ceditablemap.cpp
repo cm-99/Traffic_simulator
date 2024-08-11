@@ -28,6 +28,17 @@ void CEditableMap::add_map_boundaries()
     this->addLine(this->width(), 0, this->width(), this->height());
 }
 
+void CEditableMap::clear_stationary_map_elements()
+{
+    for(auto element : *m_stationary_map_elements){
+        removeItem(element);
+        delete element;
+    }
+
+    m_stationary_map_elements->clear();
+    m_traffic_lights->clear();
+}
+
 void CEditableMap::add_road_user(CRoadUser *new_road_user, QPointF pos)
 {
     new_road_user->setPos(pos);
@@ -46,15 +57,8 @@ void CEditableMap::add_stationary_map_element(CStationaryMapElement *new_station
 
     auto *traffic_light = dynamic_cast<CTrafficLight*>(new_stationary_map_element);
     if(traffic_light != nullptr){
-        add_traffic_light(traffic_light, pos);
+        m_traffic_lights->append(traffic_light);
     }
-}
-
-void CEditableMap::add_traffic_light(CTrafficLight *new_traffic_light, QPointF pos)
-{
-    new_traffic_light->setPos(pos);
-    m_traffic_lights->append(new_traffic_light);
-    addItem(new_traffic_light);
 }
 
 void CEditableMap::erase_road_user(CRoadUser *road_user_to_remove)
@@ -62,13 +66,6 @@ void CEditableMap::erase_road_user(CRoadUser *road_user_to_remove)
     m_road_users->remove(m_road_users->indexOf(road_user_to_remove));
     removeItem(road_user_to_remove);
     delete road_user_to_remove;
-}
-
-void CEditableMap::erase_traffic_light(CTrafficLight *traffic_light_to_remove)
-{
-    m_traffic_lights->remove(m_traffic_lights->indexOf(traffic_light_to_remove));
-    removeItem(traffic_light_to_remove);
-    delete traffic_light_to_remove;
 }
 
 void CEditableMap::erase_item(QGraphicsItem *item)
@@ -81,16 +78,9 @@ void CEditableMap::erase_stationary_map_element(CStationaryMapElement *item)
 {
     m_stationary_map_elements->removeAt(m_stationary_map_elements->indexOf(item));
 
-    auto *road_user = dynamic_cast<CRoadUser*>(item);
-    if(road_user != nullptr){
-        erase_road_user(road_user);
-        return;
-    }
-
     auto *traffic_light = dynamic_cast<CTrafficLight*>(item);
     if(traffic_light != nullptr){
-        erase_traffic_light(traffic_light);
-        return;
+        m_traffic_lights->remove(m_traffic_lights->indexOf(traffic_light));
     }
 
     removeItem(item);

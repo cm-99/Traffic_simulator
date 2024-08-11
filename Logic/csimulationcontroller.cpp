@@ -1,8 +1,7 @@
 #include "csimulationcontroller.h"
 
-
-CSimulationController::CSimulationController(CEditableMap *map_model) :
-    CBaseController(map_model)
+CSimulationController::CSimulationController(CApplicationController *application_controller, CEditableMap *map_model) :
+    CBaseController(application_controller, map_model)
 {
 
 }

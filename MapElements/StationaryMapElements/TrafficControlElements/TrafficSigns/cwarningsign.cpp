@@ -11,16 +11,16 @@ CWarningSign::CWarningSign(QPixmap sign_pixmap, SWarningSignType sign_type, QStr
 CStationaryMapElement *CWarningSign::create_give_way_sign()
 {
     CWarningSign *give_way_sign =
-        new CWarningSign(QPixmap(QPixmap(":/map_elements_graphics/signs/warning_signs/give_way_sign.png")),
-                         EWarningSigns::give_way, "Give way sign", ":/map_elements_graphics/signs/warning_signs/give_way_sign.png");
+        new CWarningSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/warning_signs/give_way_sign.png")),
+                         EWarningSigns::give_way, "Give way sign", ":graphics/map_elements_graphics/signs/warning_signs/give_way_sign.png");
     return give_way_sign;
 }
 
 CStationaryMapElement *CWarningSign::create_equivalent_intersection_sign()
 {
     CWarningSign *give_way_sign =
-        new CWarningSign(QPixmap(QPixmap(":/map_elements_graphics/signs/warning_signs/equivalent_intersection_sign.png")),
-                         EWarningSigns::equivalent_intersection, "Equivalent intersection sign", ":/map_elements_graphics/signs/warning_signs/equivalent_intersection_sign.png");
+        new CWarningSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/warning_signs/equivalent_intersection_sign.png")),
+                         EWarningSigns::equivalent_intersection, "Equivalent intersection sign", ":graphics/map_elements_graphics/signs/warning_signs/equivalent_intersection_sign.png");
     return give_way_sign;
 }
 

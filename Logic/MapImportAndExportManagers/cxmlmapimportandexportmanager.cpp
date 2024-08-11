@@ -90,7 +90,15 @@ CEditableMap *CXMLMapImportAndExportManager::load_map(QString map_file_path)
                     case ERoadwayElementType::turn:
                         deserialized_element = CTurn::deserialize_from_string(serialized_item);
                         break;
+                    default:
+                        delete map;
+                        return nullptr;
                     }
+                }
+                else{
+                    throw std::invalid_argument("Silencing the warning. This should not be thrown. If it happens it means that "
+                                                "ERoadElementType enum was changed without updating CXMLMapImportAndExportManager"
+                                                "map file loading functionality.");
                 }
             }
             else{//It's traffic control element
@@ -113,6 +121,9 @@ CEditableMap *CXMLMapImportAndExportManager::load_map(QString map_file_path)
                     case ETrafficSignCategory::warning_sign:
                         deserialized_element = CWarningSign::deserialize_from_string(serialized_item);
                         break;
+                    default:
+                        delete map;
+                        return nullptr;
                     }
                 }
             }
@@ -127,14 +138,14 @@ CEditableMap *CXMLMapImportAndExportManager::load_map(QString map_file_path)
     return map;
 }
 
-void CXMLMapImportAndExportManager::save_map(const CReadOnlyMap *map_to_save, QString map_file_path)
+bool CXMLMapImportAndExportManager::save_map(const CReadOnlyMap *map_to_save, QString map_file_path)
 {
     QFile map_file(map_file_path);
     if (!(map_file.open(QIODevice::ReadWrite)))
     {
         map_file.close();
         QMessageBox::warning(nullptr, "Saving unsuccessful", "Could not open selected file.");
-        return;
+        return false;
     }
 
     auto map_items(*map_to_save->get_stationary_map_elements());
@@ -155,4 +166,6 @@ void CXMLMapImportAndExportManager::save_map(const CReadOnlyMap *map_to_save, QS
     writer_XML.writeEndElement(); //Map_1.0
     writer_XML.writeEndDocument();
     map_file.close();
+
+    return true;
 }

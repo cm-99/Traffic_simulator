@@ -14,16 +14,18 @@ class CMainWindow;
  * Its main responsibilities are creation of the appropriate model-view-controller sets and
  * handling the loading and saving of maps, using the classes responsible for this.
  */
-class CApplicationController: public QObject
+class CApplicationController
 {
-    Q_OBJECT
 public:
     CApplicationController();
     ~CApplicationController();
 
-    void inline delegate_map_loading(QString map_file_path) {m_map_creation_controller->delegate_map_loading(map_file_path);}
+    bool delegate_map_loading_into_creator(QString map_file_path);
+    bool process_simulation_start_request(QString map_file_path);
+
     const inline QList<QString> &get_supported_map_file_formats() const {return m_map_creation_controller->get_supported_map_file_formats();}
     CMapCreationController *get_map_creation_controller() const {return m_map_creation_controller;}
+
 
 private:
     CMainWindow *m_main_window;

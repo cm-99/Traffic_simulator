@@ -1,53 +1,76 @@
 #include <QFormLayout>
+#include <QLabel>
 
 #include "croadusersparametersinputwidget.h"
 #include "UI/cexpandablewidget.h"
 
 CRoadUsersParametersInputWidget::CRoadUsersParametersInputWidget(QString title) {
-    auto *content_widget = new QFrame(this);
-    auto *widget_layout = new QVBoxLayout();
-    auto *wrapper_layout = new QFormLayout();
-    auto *expandable_widget = new CExpandableWidget(title, 300, this);
+    auto *content_layout = new QFormLayout(this);
 
     int attributes_number = SRoadUsersBasicParameters::get_attributes_number();
     QStringList attributes_names = SRoadUsersBasicParameters::get_attributes_names_list();
-    QStringList attributes_values_specifiers = {"[minimum]", "[maximum]", "[default]"};
+    QStringList attributes_values_specifiers = {"[minimum]", "[mean]", "[maximum]"};
 
     for(int i = 0; i < attributes_number; i++){
         QString attribute_name = attributes_names[i];
-        auto min_max_and_default_attribute_value = SRoadUsersBasicParameters::get_attribute_min_max_and_default_value(i);
+        auto min_max_and_default_attribute_value = SRoadUsersBasicParameters::get_attribute_min_max_and_mean_values(i);
+        auto attribute_label = new QLabel(attribute_name);
+        attribute_label->setMinimumWidth(attribute_label->sizeHint().width());
+        content_layout->addRow(attribute_label);
 
         for(int j = 0; j < 3; j++){
-            QString row_name = attributes_values_specifiers[j] + " " + attribute_name;
 
+            QString row_specifier = attributes_values_specifiers[j];
             auto attribute_spin_box = new QSpinBox();
+
             attribute_spin_box->setMinimum(std::get<0>(min_max_and_default_attribute_value));
             attribute_spin_box->setMaximum(std::get<1>(min_max_and_default_attribute_value));
-            attribute_spin_box->setValue(std::get<2>(min_max_and_default_attribute_value));
 
-            wrapper_layout->addRow(row_name, attribute_spin_box);
+            content_layout->addRow(row_specifier, attribute_spin_box);
+            switch (j){
+            case 0:
+                m_min_parameters_spin_boxes.append(attribute_spin_box);
+                attribute_spin_box->setValue(std::get<0>(min_max_and_default_attribute_value));
+                break;
+            case 1:
+                m_mean_parameters_spin_boxes.append(attribute_spin_box);
+                attribute_spin_box->setValue(std::get<2>(min_max_and_default_attribute_value));
+                break;
+            case 2:
+                m_max_parameters_spin_boxes.append(attribute_spin_box);
+                attribute_spin_box->setValue(std::get<0>(min_max_and_default_attribute_value));
+                break;
+            }
         }
+
+        connect(m_min_parameters_spin_boxes[i], &QSpinBox::valueChanged, m_mean_parameters_spin_boxes[i], &QSpinBox::setMinimum);
+        connect(m_mean_parameters_spin_boxes[i], &QSpinBox::valueChanged, m_max_parameters_spin_boxes[i], &QSpinBox::setMinimum);
     }
 
-    content_widget->setLayout(widget_layout);
-    wrapper_layout->addWidget(content_widget);
-    content_widget->setMinimumWidth(1000);
-    expandable_widget->set_content_layout(*wrapper_layout);
+    auto expandable_widget = new CExpandableWidget(title, 300, this);
+    expandable_widget->set_content_layout(*content_layout);
+    auto wrapper_layout = new QVBoxLayout(this);
+    wrapper_layout->addWidget(expandable_widget);
 
+    this->setLayout(wrapper_layout);
     expandable_widget->slot_toggle(true);
 }
 
-SRoadUsersBasicParameters CRoadUsersParametersInputWidget::get_road_users_minimum_basic_parameters()
+std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters> CRoadUsersParametersInputWidget::get_road_users_min_max_and_mean_basic_parameters()
 {
+    QVector<int> min_parameters_values;
+    QVector<int> max_parameters_values;
+    QVector<int> mean_parameters_values;
 
-}
+    int spin_boxes_count = m_max_parameters_spin_boxes.size();
+    for(int i = 0; i < spin_boxes_count; i++){
+        min_parameters_values.append(m_min_parameters_spin_boxes[0]->value());
+        max_parameters_values.append(m_max_parameters_spin_boxes[0]->value());
+        mean_parameters_values.append(m_mean_parameters_spin_boxes[0]->value());
+    }
 
-SRoadUsersBasicParameters CRoadUsersParametersInputWidget::get_road_users_default_basic_parameters()
-{
-
-}
-
-SRoadUsersBasicParameters CRoadUsersParametersInputWidget::get_road_users_maximum_basic_parameters()
-{
+    return std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters>
+        (SRoadUsersBasicParameters(min_parameters_values), SRoadUsersBasicParameters(max_parameters_values),
+        SRoadUsersBasicParameters(mean_parameters_values));
 
 }

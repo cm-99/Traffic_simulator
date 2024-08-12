@@ -13,6 +13,11 @@ CApplicationController::CApplicationController()
 
 CApplicationController::~CApplicationController()
 {
+    delete m_map_creation_controller;
+    if(m_simulation_controller != nullptr){
+        delete m_simulation_controller;
+    }
+
     delete m_main_window;
 }
 
@@ -24,6 +29,21 @@ bool CApplicationController::delegate_map_loading_into_creator(QString map_file_
 
 bool CApplicationController::process_simulation_start_request(QString map_file_path)
 {
+    auto simulation_map = m_map_creation_controller->load_map_from_file(map_file_path);
+    if(simulation_map == nullptr){
+        return false;
+    }
 
+    auto simulation_configuration = m_main_window->get_simulation_configuration_from_user();
+    if(simulation_configuration.is_empty()){
+        return false;
+    }
+
+    if(m_simulation_controller == nullptr){
+        m_simulation_controller = new CSimulationController(this, simulation_map, simulation_configuration);
+    }
+    m_main_window->show_simulation_page();
+
+    return true;
 }
 

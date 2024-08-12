@@ -9,6 +9,7 @@
 #include "cmapcreationpage.h"
 #include "chomepage.h"
 #include "cmapselectionpage.h"
+#include "UI/csimulationconfigurationdialog.h"
 
 /**
  * @brief The CMainWindow class is a parent and container of other UI classes.
@@ -20,19 +21,21 @@ class CMainWindow : public QMainWindow
 public:
     explicit CMainWindow(QWidget *parent = nullptr, CApplicationController *application_controller = nullptr);
     ~CMainWindow();
-    void relay_simulation_configuration_request(QString map_file_path);
-
+    void relay_simulation_start_request(QString map_file_path);
+    SSimulationConfiguration get_simulation_configuration_from_user();
+    void show_simulation_page();
 
 private:
     CApplicationController *m_application_controller;
-    int previous_page_index{0};
-    QPushButton m_back_button;
-    QPushButton m_home_page_button;
 
     QStackedWidget stacked_widget;
     CHomePage m_home_page;
     CMapSelectionPage m_map_selection_page;
     CMapCreationPage m_map_creation_page;
+
+    int previous_page_index{0};
+    QPushButton m_back_button;
+    QPushButton m_home_page_button;
 
 public slots:
     void slot_open_map_in_creator(QString map_file_path);
@@ -51,7 +54,6 @@ private slots:
      * and forwards map loading to m_application_controller.
      */
     void slot_process_map_loading_request();
-
     void slot_switch_to_previous_page();
     void slot_back_to_home_page();
 };

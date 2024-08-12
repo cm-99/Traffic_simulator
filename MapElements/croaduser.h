@@ -61,7 +61,7 @@ struct SRoadUsersBasicParameters{
                            "Chance of breaking law [%]"};
     }
 
-    static std::tuple<int, int, int> get_attribute_min_max_and_default_value(int index){
+    static std::tuple<int, int, int> get_attribute_min_max_and_mean_values(int index){
         switch (index){
         case 0:
             return std::tuple<int, int, int>(0, 100, 50);

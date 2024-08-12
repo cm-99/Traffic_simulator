@@ -333,7 +333,6 @@ CEditableMap *CMapCreationController::load_map_from_file(QString map_file_path)
 
 void CMapCreationController::process_simulation_start_request()
 {
-
     //TODO: Implement map copy constructor <=> implement copy constructors for all map elements :/
     QString temp_map_file_path = qApp->applicationDirPath() + "/temp.xml";
 

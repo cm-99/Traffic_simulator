@@ -7,11 +7,9 @@
 
 CTrafficLightsDurationInputWidget::CTrafficLightsDurationInputWidget() {
 
-    auto *content_widget = new QFrame(this);
-    auto *widget_layout = new QVBoxLayout();
-    auto *wrapper_layout = new QFormLayout();
-    auto *expandable_widget = new CExpandableWidget("Traffic lights durations", 300, this);
+    auto content_layout = new QFormLayout();
 
+    //TODO: refactor this. Implement methods similar to SRoadUsersBasicParameters and use them instead
     m_green_light_duration_spin_box.setMinimum(10);
     m_green_light_duration_spin_box.setMaximum(70);
     m_green_light_duration_spin_box.setValue(58);
@@ -28,15 +26,17 @@ CTrafficLightsDurationInputWidget::CTrafficLightsDurationInputWidget() {
     m_yellow_and_red_light_duration_spin_box.setMaximum(5);
     m_yellow_and_red_light_duration_spin_box.setValue(1);
 
-    wrapper_layout->addRow("Green light duration [s]", &m_green_light_duration_spin_box);
-    wrapper_layout->addRow("Yellow light duration [s]", &m_yellow_light_duration_spin_box);
-    wrapper_layout->addRow("Red light duration [s]", &m_red_light_duration_spin_box);
-    wrapper_layout->addRow("Red and yellow light duration [s]", &m_yellow_and_red_light_duration_spin_box);
+    content_layout->addRow("Green light duration [s]", &m_green_light_duration_spin_box);
+    content_layout->addRow("Yellow light duration [s]", &m_yellow_light_duration_spin_box);
+    content_layout->addRow("Red light duration [s]", &m_red_light_duration_spin_box);
+    content_layout->addRow("Red and yellow light duration [s]", &m_yellow_and_red_light_duration_spin_box);
 
-    content_widget->setLayout(widget_layout);
-    wrapper_layout->addWidget(content_widget);
-    expandable_widget->set_content_layout(*wrapper_layout);
+    auto expandable_widget = new CExpandableWidget("Traffic lights durations", 300, this);
+    expandable_widget->set_content_layout(*content_layout);
+    auto wrapper_layout = new QVBoxLayout(this);
+    wrapper_layout->addWidget(expandable_widget);
 
+    this->setLayout(wrapper_layout);
     expandable_widget->slot_toggle(true);
 }
 

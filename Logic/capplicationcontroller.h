@@ -4,6 +4,7 @@
 #include <QObject>
 
 #include "Logic/cmapcreationcontroller.h"
+#include "Logic/csimulationcontroller.h"
 
 class CMainWindow;
 
@@ -30,6 +31,7 @@ public:
 private:
     CMainWindow *m_main_window;
     CMapCreationController *m_map_creation_controller;
+    CSimulationController *m_simulation_controller{nullptr};
 
 };
 

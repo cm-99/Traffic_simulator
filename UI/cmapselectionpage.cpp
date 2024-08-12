@@ -22,7 +22,7 @@ CMapSelectionPage::CMapSelectionPage(CMainWindow *parent):
     m_button_configure_simulation.setFixedSize(200, 50);
 
     connect(&m_button_configure_simulation, &QPushButton::clicked, this, [=](){
-        m_main_window->relay_simulation_configuration_request(m_current_map_file_path);
+        m_main_window->relay_simulation_start_request(m_current_map_file_path);
         restore_to_default();
     });
 

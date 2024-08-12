@@ -2,7 +2,6 @@
 #include <QApplication>
 
 #include "cmainwindow.h"
-//#include "UI/croadusersparametersinputwidget.h"
 
 CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_controller):
     QMainWindow{parent},
@@ -15,7 +14,7 @@ CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_co
     QIcon icon(back_pixmap);
     m_back_button.setIcon(icon);
 
-    this -> m_application_controller = application_controller;
+    this->m_application_controller = application_controller;
     this->menuBar()->setCornerWidget(&m_back_button);
     this->menuBar()->setCornerWidget(&m_home_page_button, Qt::TopLeftCorner);
     this->setMinimumSize(800, 450);
@@ -32,15 +31,32 @@ CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_co
     stacked_widget.addWidget(&m_map_selection_page);
     stacked_widget.addWidget(&m_map_creation_page);
 
+
     this->setCentralWidget(&stacked_widget);
     stacked_widget.setCurrentWidget(&m_home_page);
 }
 
 CMainWindow::~CMainWindow(){}
 
-void CMainWindow::relay_simulation_configuration_request(QString map_file_path)
+void CMainWindow::relay_simulation_start_request(QString map_file_path)
 {
     m_application_controller->process_simulation_start_request(map_file_path);
+}
+
+SSimulationConfiguration CMainWindow::get_simulation_configuration_from_user()
+{
+    CSimulationConfigurationDialog configuration_dialog;
+    if(configuration_dialog.exec() == QDialog::DialogCode::Accepted){
+        return configuration_dialog.get_simulation_configuration();
+    }
+    else{
+        return SSimulationConfiguration();
+    }
+}
+
+void CMainWindow::show_simulation_page()
+{
+
 }
 
 void CMainWindow::slot_show_map_creation_page()

@@ -15,6 +15,7 @@ struct STrafficLightsDuration{
     int m_red_ligth_duration;
     int m_red_and_yellow_ligths_duration;
 
+    explicit STrafficLightsDuration() {};
     STrafficLightsDuration(int green_ligth_duration, int yellow_ligth_duration, int red_ligth_duration, int red_and_yellow_ligths_duration):
         m_green_ligth_duration(green_ligth_duration),
         m_yellow_ligth_duration(yellow_ligth_duration),

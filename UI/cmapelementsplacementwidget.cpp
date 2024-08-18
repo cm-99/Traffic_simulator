@@ -57,6 +57,8 @@ void CMapElementsPlacementWidget::add_map_elements_creation_buttons()
     add_stationary_map_element_creation_button(&CInformationSign::create_one_wady_road_sign);
     add_stationary_map_element_creation_button(&CInformationSign::create_priority_road_sign);
     add_stationary_map_element_creation_button(&CInformationSign::create_pedestrian_crossing_sign);
+    add_stationary_map_element_creation_button(&CInformationSign::create_built_up_area_sign);
+    add_stationary_map_element_creation_button(&CInformationSign::create_non_built_up_area_sign);
 
     add_stationary_map_element_creation_button(&CProhibitionSign::create_left_turn_prohibited_sign);
     add_stationary_map_element_creation_button(&CProhibitionSign::create_right_turn_prohibited_sign);

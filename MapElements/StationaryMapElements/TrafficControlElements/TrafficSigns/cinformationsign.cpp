@@ -31,6 +31,22 @@ CStationaryMapElement *CInformationSign::create_one_wady_road_sign()
     return one_wady_road_sign;
 }
 
+CStationaryMapElement *CInformationSign::create_built_up_area_sign()
+{
+    CInformationSign *built_up_area_sign =
+        new CInformationSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/information_signs/built_up_area_sign.png")),
+                             EInformationSigns::built_up_area_sign, "Built-up area", ":graphics/map_elements_graphics/signs/information_signs/built_up_area_sign.png");
+    return built_up_area_sign;
+}
+
+CStationaryMapElement *CInformationSign::create_non_built_up_area_sign()
+{
+    CInformationSign *non_built_up_area_sign =
+        new CInformationSign(QPixmap(QPixmap(":graphics/map_elements_graphics/signs/information_signs/non_built_up_area_sign.png")),
+                             EInformationSigns::non_built_up_area_sign, "Non-built-up area", ":graphics/map_elements_graphics/signs/information_signs/non_built_up_area_sign.png");
+    return non_built_up_area_sign;
+}
+
 QString CInformationSign::serialize_as_string()
 {
     return get_pixmap_path() + "," + m_sign_type.type_number_as_string() + "," + QString::number(pos().x()) + "," + QString::number(pos().y());

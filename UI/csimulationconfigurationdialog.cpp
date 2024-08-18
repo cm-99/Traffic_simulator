@@ -5,7 +5,10 @@
 
 #include "csimulationconfigurationdialog.h"
 
-CSimulationConfigurationDialog::CSimulationConfigurationDialog() {
+SSimulationConfiguration CSimulationConfigurationDialog::m_simulation_configuration = SSimulationConfiguration();
+
+CSimulationConfigurationDialog::CSimulationConfigurationDialog()
+{
     setResult(QDialog::DialogCode::Rejected);
 
     auto stacked_layout = new QStackedLayout();
@@ -33,13 +36,32 @@ CSimulationConfigurationDialog::CSimulationConfigurationDialog() {
     auto tp_previous_button = new QPushButton("Previous");
     auto start_simulation_button = new QPushButton("Start simulation");
 
-    first_page_layout->addWidget(&m_cars_parameters_input_widget);
+    if(m_simulation_configuration.is_empty()){
+        m_cars_parameters_input_widget = new CRoadUsersParametersInputWidget("Cars simulation parameters", ERoadUsers::car);
+        m_pedestrians_parameters_input_widget = new CRoadUsersParametersInputWidget("Pedestrians simulation parameters",
+                                                                                    ERoadUsers::pedestrian);
+        m_traffic_lights_duration_input_widget = new CTrafficLightsDurationInputWidget();
+    }
+    else{
+        m_cars_parameters_input_widget = new CRoadUsersParametersInputWidget("Cars simulation parameters",
+        std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters>
+        (m_simulation_configuration.m_cars_min_basic_parameters, m_simulation_configuration.m_cars_max_basic_parameters,
+         m_simulation_configuration.m_cars_mean_basic_parameters));
+
+        m_pedestrians_parameters_input_widget = new CRoadUsersParametersInputWidget("Pedestrians simulation parameters",
+        std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters>
+        (m_simulation_configuration.m_pedestrians_min_basic_parameters, m_simulation_configuration.m_pedestrians_max_basic_parameters,
+         m_simulation_configuration.m_pedestrians_mean_basic_parameters));
+        m_traffic_lights_duration_input_widget = new CTrafficLightsDurationInputWidget(m_simulation_configuration.m_traffic_lights_duration);
+    }
+
+    first_page_layout->addWidget(m_cars_parameters_input_widget);
     fp_next_button->setFixedSize(fp_next_button->sizeHint().width(), fp_next_button->sizeHint().height());
     first_page_layout->addWidget(fp_next_button);
     first_page_layout->setAlignment(fp_next_button, Qt::AlignRight);
     first_page_widget->setLayout(first_page_layout);
 
-    second_page_layout->addWidget(&m_pedestrians_parameters_input_widget);
+    second_page_layout->addWidget(m_pedestrians_parameters_input_widget);
     second_page_layout->addLayout(sp_buttons_layout);
     sp_next_button->setFixedSize(sp_next_button->sizeHint().width(), sp_next_button->sizeHint().height());
     sp_previous_button->setFixedSize(sp_previous_button->sizeHint().width(), sp_previous_button->sizeHint().height());
@@ -49,7 +71,7 @@ CSimulationConfigurationDialog::CSimulationConfigurationDialog() {
     sp_buttons_layout->setAlignment(sp_next_button, Qt::AlignRight);
     second_page_widget->setLayout(second_page_layout);
 
-    third_page_layout->addWidget(&m_traffic_lights_duration_input_widget);
+    third_page_layout->addWidget(m_traffic_lights_duration_input_widget);
     third_page_layout->addLayout(tp_form_layout);
     third_page_layout->addLayout(tp_buttons_layout);
     tp_form_layout->addRow("Automatically place cars and pedestrians", automatic_placement_check_box);
@@ -90,13 +112,13 @@ CSimulationConfigurationDialog::CSimulationConfigurationDialog() {
 
     connect(start_simulation_button, &QPushButton::clicked, this, [=](){
 
-        m_traffic_lights_duration_input_widget.check_input_validity();
+        m_traffic_lights_duration_input_widget->check_input_validity();
 
         std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters> min_max_and_mean_cars_parameters =
-            m_cars_parameters_input_widget.get_road_users_min_max_and_mean_basic_parameters();
+            m_cars_parameters_input_widget->get_road_users_min_max_and_mean_basic_parameters();
 
         std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters> min_max_and_mean_pedestrians_parameters =
-            m_pedestrians_parameters_input_widget.get_road_users_min_max_and_mean_basic_parameters();
+            m_pedestrians_parameters_input_widget->get_road_users_min_max_and_mean_basic_parameters();
 
         int cars_to_place = 0;
         int pedestrians_to_place = 0;
@@ -112,7 +134,7 @@ CSimulationConfigurationDialog::CSimulationConfigurationDialog() {
                                                               std::get<0>(min_max_and_mean_pedestrians_parameters),
                                                               std::get<2>(min_max_and_mean_pedestrians_parameters),
                                                               std::get<1>(min_max_and_mean_pedestrians_parameters),
-                                                              m_traffic_lights_duration_input_widget.get_traffic_lights_duration(),
+                                                              m_traffic_lights_duration_input_widget->get_traffic_lights_duration(),
                                                               automatic_placement_check_box->isChecked(), cars_to_place,
                                                               pedestrians_to_place);
         this->done(QDialog::Accepted);
@@ -122,10 +144,5 @@ CSimulationConfigurationDialog::CSimulationConfigurationDialog() {
 
 SSimulationConfiguration CSimulationConfigurationDialog::get_simulation_configuration()
 {
-    if(this->result() == QDialog::DialogCode::Rejected){
-        throw std::logic_error("get_simulation_configuration() was called on a rejected CSimulationConfigurationDialog");
-        return SSimulationConfiguration();
-    }
-
     return m_simulation_configuration;
 }

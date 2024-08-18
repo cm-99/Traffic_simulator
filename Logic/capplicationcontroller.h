@@ -1,8 +1,6 @@
 #ifndef CAPPLICATIONCONTROLLER_H
 #define CAPPLICATIONCONTROLLER_H
 
-#include <QObject>
-
 #include "Logic/cmapcreationcontroller.h"
 #include "Logic/csimulationcontroller.h"
 
@@ -26,13 +24,12 @@ public:
 
     const inline QList<QString> &get_supported_map_file_formats() const {return m_map_creation_controller->get_supported_map_file_formats();}
     CMapCreationController *get_map_creation_controller() const {return m_map_creation_controller;}
-
+    CSimulationController *get_simulation_controller() const {return m_simulation_controller;}
 
 private:
     CMainWindow *m_main_window;
     CMapCreationController *m_map_creation_controller;
     CSimulationController *m_simulation_controller{nullptr};
-
 };
 
 #endif // CAPPLICATIONCONTROLLER_H

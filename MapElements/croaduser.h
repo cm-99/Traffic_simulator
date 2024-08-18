@@ -1,6 +1,7 @@
 #ifndef CROADUSER_H
 #define CROADUSER_H
 
+#include "MapElements/StationaryMapElements/croadelement.h"
 #include <QPointF>
 #include <QGraphicsPixmapItem>
 
@@ -15,22 +16,22 @@ struct SRoadUsersBasicParameters{
     /**
      * @brief m_forward_visibility_distance is a distance at which the road user can see and identify objects in front of him
      */
-    int m_forward_visibility_distance;
+    double m_forward_visibility_distance;
     /**
      * @brief m_lateral_visibility_range is used to determine which objects are seen by the road user in relation to the road width
      *
      * By default it should be set so that road user can discern elements on the whole width of the road
     **/
-    int m_lateral_visibility_distance;
-    int m_reaction_time;
-    int m_max_acceleration_value;
-    int m_max_deceleration_value;
-    int m_max_speed;
-    int m_chance_of_breaking_law;
+    double m_lateral_visibility_distance;
+    double m_reaction_time;
+    double m_max_acceleration_value;
+    double m_max_deceleration_value;
+    double m_max_speed;
+    double m_chance_of_breaking_law;
 
     explicit SRoadUsersBasicParameters(){};
-    SRoadUsersBasicParameters(int forward_visibility_distance, int lateral_visibility_distance, int reaction_time,
-                              int max_acceleration_value, int max_deceleration_value, int max_speed, int chance_of_breaking_law = 0)
+    SRoadUsersBasicParameters(double forward_visibility_distance, double lateral_visibility_distance, double reaction_time,
+                              double max_acceleration_value, double max_deceleration_value, double max_speed, double chance_of_breaking_law = 0)
     {
         m_forward_visibility_distance = forward_visibility_distance;
         m_lateral_visibility_distance = lateral_visibility_distance;
@@ -41,7 +42,7 @@ struct SRoadUsersBasicParameters{
         m_chance_of_breaking_law = chance_of_breaking_law;
     }
 
-    SRoadUsersBasicParameters(QVector<int> attributes_values){
+    SRoadUsersBasicParameters(QVector<double> attributes_values){
         m_forward_visibility_distance = attributes_values[0];
         m_lateral_visibility_distance = attributes_values[1];
         m_reaction_time = attributes_values[2];
@@ -55,38 +56,96 @@ struct SRoadUsersBasicParameters{
         return 7;
     }
 
+    double get_attribute_by_index(int index){
+        switch (index){
+        case 0:
+            return m_forward_visibility_distance;
+            break;
+        case 1:
+            return m_lateral_visibility_distance;
+            break;
+        case 2:
+            return m_reaction_time;
+            break;
+        case 3:
+            return m_max_acceleration_value;
+            break;
+        case 4:
+            return m_max_deceleration_value;
+            break;
+        case 5:
+            return m_max_speed;
+            break;
+        case 6:
+            return m_chance_of_breaking_law;
+            break;
+        default:
+            throw std::out_of_range("Value of argument index out of range (>= get_attributes_number())");
+        }
+    }
+
     static QStringList get_attributes_names_list(){
         return QStringList{"Forward visibility distance [m]", "Lateral visibility distance [m]", "Reaction time [ms]",
-                           "Max acceleration value [m/s^2]", "Max deceleration value [m/s^2]", "Max speed [m/s]",
+                           "Max acceleration value [m/s^2]", "Max deceleration value [m/s^2]", "Max speed [km/h]",
                            "Chance of breaking law [%]"};
     }
 
-    static std::tuple<int, int, int> get_attribute_min_max_and_mean_values(int index){
-        switch (index){
-        case 0:
-            return std::tuple<int, int, int>(0, 100, 50);
-            break;
-        case 1:
-            return std::tuple<int, int, int>(0, 50, 10);
-            break;
-        case 2:
-            return std::tuple<int, int, int>(700, 2000, 1000);
-            break;
-        case 3:
-            return std::tuple<int, int, int>(1, 8, 4);
-            break;
-        case 4:
-            return std::tuple<int, int, int>(1, 6, 4);
-            break;
-        case 5:
-            return std::tuple<int, int, int>(150, 400, 200);
-            break;
-        case 6:
-            return std::tuple<int, int, int>(0, 100, 0);
-            break;
-        default:
-            throw std::invalid_argument("Invalid value of argument index (>= get_attributes_number()");
-            break;
+    static std::tuple<double, double, double> get_road_users_attributes_min_max_and_mean_values(int index, ERoadUsers road_user_type){
+        if(road_user_type == ERoadUsers::car){
+            switch (index){
+            case 0:
+                return std::tuple<double, double, double>(0, 5000, 3000);
+                break;
+            case 1:
+                return std::tuple<double, double, double>(0, 5000, 3000);
+                break;
+            case 2:
+                return std::tuple<double, double, double>(700, 2000, 1000);
+                break;
+            case 3:
+                return std::tuple<double, double, double>(1, 8, 4);
+                break;
+            case 4:
+                return std::tuple<double, double, double>(1, 6, 4);
+                break;
+            case 5:
+                return std::tuple<double, double, double>(150, 400, 200);
+                break;
+            case 6:
+                return std::tuple<double, double, double>(0, 100, 0);
+                break;
+            default:
+                throw std::out_of_range("Value of argument index out of range (>= get_attributes_number())");
+                break;
+            }
+        }
+        else{
+            switch (index){
+            case 0:
+                return std::tuple<double, double, double>(0, 5000, 3000);
+                break;
+            case 1:
+                return std::tuple<double, double, double>(0, 5000, 3000);
+                break;
+            case 2:
+                return std::tuple<double, double, double>(700, 2000, 1000);
+                break;
+            case 3:
+                return std::tuple<double, double, double>(0.34, 1.44, 0.68);
+                break;
+            case 4:
+                return std::tuple<double, double, double>(2, 5, 3);
+                break;
+            case 5:
+                return std::tuple<double, double, double>(3, 27, 6);
+                break;
+            case 6:
+                return std::tuple<double, double, double>(0, 100, 0);
+                break;
+            default:
+                throw std::out_of_range("Value of argument index out of range (>= get_attributes_number())");
+                break;
+            }
         }
     }
 };
@@ -102,17 +161,22 @@ struct SRoadUsersBasicParameters{
 class CRoadUser: public QGraphicsPixmapItem
 {
 public:
-    CRoadUser(ERoadUsers road_user_type) :
-        m_road_user_type(road_user_type) {setZValue(1);}
+    CRoadUser(ERoadUsers road_user_type, QString description, EMovementPlane starting_movement_plane) :
+        m_starting_movement_plane(starting_movement_plane),
+        m_road_user_type(road_user_type),
+        m_description(description) {setZValue(1);}
     /**
      * @brief move is a main method for simulation purposes - it should cause the movement of a given object.
      */
     virtual void move() = 0;
 
-    const SRoadUsersBasicParameters& get_basic_parameters() const {return m_road_users_parameters;}
-    ERoadUsers get_road_user_type() const {return m_road_user_type;}
-    // TODO: IT SHOULD BE PROTECTED FROM UNAUTHORIZED EDITION. THIS SHOULD STAY ONLY FOR TESTS.
-    // SRoadUsersBasicParameters& get_editable_basic_parameters() {return m_road_users_parameters;}
+    inline void set_basic_parameters(SRoadUsersBasicParameters parameters) {m_road_users_parameters = parameters;}
+
+    inline const SRoadUsersBasicParameters& get_basic_parameters() const {return m_road_users_parameters;}
+    inline ERoadUsers get_road_user_type() const {return m_road_user_type;}
+    inline QString get_description() const {return m_description;}
+    inline EMovementPlane get_starting_movement_plane() const {return m_starting_movement_plane;}
+    inline bool is_rotable() const {return m_is_rotable;}
 
 protected:
     SRoadUsersBasicParameters m_road_users_parameters;
@@ -120,13 +184,17 @@ protected:
      * @brief m_designated_destination is to be used when implementing movement to designated point chosen by the user.
      */
     QPointF m_designated_destination;
+
     bool m_has_designated_destination{false};
     bool m_is_involved_in_accident{false};
     bool m_is_selected{false};
-    EHorizontalMoveDirection m_horizontal_move_direction;
-    EVerticalMoveDirection m_vertical_move_direction;
+    bool m_is_rotable{true};
+    // EHorizontalMoveDirection m_horizontal_move_direction;
+    // EVerticalMoveDirection m_vertical_move_direction;
+    EMovementPlane m_starting_movement_plane;
     double m_current_speed{0};
     ERoadUsers m_road_user_type;
+    QString m_description;
 };
 
 #endif // CROADUSER_H

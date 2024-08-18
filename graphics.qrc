@@ -36,5 +36,19 @@
         <file>graphics/map_selection/map_2.jpg</file>
         <file>graphics/map_selection/map_3.jpg</file>
         <file>graphics/buttons_icons/back_button.png</file>
+        <file>graphics/buttons_icons/game_speed_1_button.png</file>
+        <file>graphics/buttons_icons/game_speed_2_button.png</file>
+        <file>graphics/buttons_icons/pause_button.png</file>
+        <file>graphics/buttons_icons/play_icon.jpg</file>
+        <file>graphics/buttons_icons/restart_button.png</file>
+        <file>graphics/map_elements_graphics/signs/information_signs/built_up_area_sign.png</file>
+        <file>graphics/map_elements_graphics/road_users/cars/car_green.png</file>
+        <file>graphics/map_elements_graphics/road_users/cars/car_red.png</file>
+        <file>graphics/map_elements_graphics/road_users/cars/car_yellow.png</file>
+        <file>graphics/map_elements_graphics/road_users/pedestrians/pedestrian_right.png</file>
+        <file>graphics/map_elements_graphics/road_users/pedestrians/pedestrian_right_2.png</file>
+        <file>graphics/map_elements_graphics/road_users/pedestrians/pedestrian_right_still.png</file>
+        <file>graphics/map_elements_graphics/signs/information_signs/non_built_up_area_sign.png</file>
+        <file>graphics/buttons_icons/game_speed_3_button.png</file>
     </qresource>
 </RCC>

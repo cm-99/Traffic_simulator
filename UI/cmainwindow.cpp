@@ -2,26 +2,33 @@
 #include <QApplication>
 
 #include "cmainwindow.h"
+#include "UI/csimulationconfigurationdialog.h"
 
 CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_controller):
     QMainWindow{parent},
     m_map_selection_page(this),
     m_map_creation_page(application_controller->get_map_creation_controller(), this)
 {
+    this->m_application_controller = application_controller;
+    this->setMinimumSize(800, 450);
+
     QSize size_hint = m_back_button.sizeHint();
     QPixmap back_pixmap(":/graphics/buttons_icons/back_button.png");
     back_pixmap = back_pixmap.scaled(size_hint, Qt::KeepAspectRatio);
     QIcon icon(back_pixmap);
     m_back_button.setIcon(icon);
 
-    this->m_application_controller = application_controller;
-    this->menuBar()->setCornerWidget(&m_back_button);
-    this->menuBar()->setCornerWidget(&m_home_page_button, Qt::TopLeftCorner);
-    this->setMinimumSize(800, 450);
-    m_home_page_button.setText("Main menu");
-    m_back_button.setDisabled(true);
+    m_home_page_action.setText("Main menu");
+    m_simulation_page_action.setText("Simulation");
 
-    connect(&m_home_page_button, &QPushButton::clicked, this, &CMainWindow::slot_back_to_home_page);
+    this->menuBar()->addAction(&m_home_page_action);
+    this->menuBar()->addAction(&m_simulation_page_action);
+    this->menuBar()->setCornerWidget(&m_back_button);
+    m_back_button.setDisabled(true);
+    m_simulation_page_action.setDisabled(true);
+
+    connect(&m_home_page_action, &QAction::triggered, this, &CMainWindow::slot_back_to_home_page);
+    connect(&m_simulation_page_action, &QAction::triggered, this, [=]() {this->show_simulation_page();});
     connect(&m_back_button, &QPushButton::clicked, this, &CMainWindow::slot_switch_to_previous_page);
     connect(&m_home_page, &CHomePage::signal_map_creator_requested, this, &CMainWindow::slot_show_map_creation_page);
     connect(&m_home_page, &CHomePage::signal_map_selection_requested, this, &CMainWindow::slot_show_map_selection_page);
@@ -30,7 +37,6 @@ CMainWindow::CMainWindow(QWidget *parent, CApplicationController *application_co
     stacked_widget.addWidget(&m_home_page);
     stacked_widget.addWidget(&m_map_selection_page);
     stacked_widget.addWidget(&m_map_creation_page);
-
 
     this->setCentralWidget(&stacked_widget);
     stacked_widget.setCurrentWidget(&m_home_page);
@@ -56,7 +62,16 @@ SSimulationConfiguration CMainWindow::get_simulation_configuration_from_user()
 
 void CMainWindow::show_simulation_page()
 {
+    previous_page_index = stacked_widget.currentIndex();
+    m_back_button.setDisabled(false);
+    m_simulation_page_action.setDisabled(false);
 
+    if(m_simulation_page == nullptr){
+        m_simulation_page = new CSimulationPage(m_application_controller->get_simulation_controller(), this);
+        stacked_widget.addWidget(m_simulation_page);
+    }
+
+    stacked_widget.setCurrentWidget(m_simulation_page);
 }
 
 void CMainWindow::slot_show_map_creation_page()

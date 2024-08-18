@@ -3,7 +3,7 @@
 
 #include "MapElements/StationaryMapElements/TrafficControlElements/ctrafficsign.h"
 
-enum EInformationSigns{one_way_road, pedestrian_crossing_sign, priority_road};
+enum EInformationSigns{one_way_road, pedestrian_crossing_sign, priority_road, built_up_area_sign, non_built_up_area_sign};
 struct SInformationSignType{
     EInformationSigns m_type;
 
@@ -41,6 +41,8 @@ public:
     static CStationaryMapElement *create_priority_road_sign();
     static CStationaryMapElement *create_pedestrian_crossing_sign();
     static CStationaryMapElement *create_one_wady_road_sign();
+    static CStationaryMapElement *create_built_up_area_sign();
+    static CStationaryMapElement *create_non_built_up_area_sign();
 
 private:
     CInformationSign(QPixmap sign_pixmap, SInformationSignType sign_type, QString description, QString pixmap_path);

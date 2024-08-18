@@ -15,6 +15,12 @@ public:
 
 private:
     CSimulationController *m_simulation_controller;
+
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent* event);
+    void process_zooming(QWheelEvent *event);
+
 };
 
 #endif // CSIMULATIONVIEW_H

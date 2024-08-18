@@ -1,5 +1,6 @@
 #include <QFile>
 #include <QFileInfo>
+#include <QObject>
 
 #include "capplicationcontroller.h"
 #include "UI/cmainwindow.h"
@@ -29,7 +30,8 @@ bool CApplicationController::delegate_map_loading_into_creator(QString map_file_
 
 bool CApplicationController::process_simulation_start_request(QString map_file_path)
 {
-    auto simulation_map = m_map_creation_controller->load_map_from_file(map_file_path);
+    CEditableMap *simulation_map = m_map_creation_controller->load_map_from_file(map_file_path);
+
     if(simulation_map == nullptr){
         return false;
     }

@@ -42,8 +42,8 @@ bool CMapCreationController::load_map_into_creator(QString map_file_path)
         return false;
     }
 
-    add_guide_grid();
     set_model(map_model);
+    add_guide_grid();
 
     return true;
 }
@@ -326,6 +326,7 @@ CEditableMap *CMapCreationController::load_map_from_file(QString map_file_path)
         QMessageBox::warning(nullptr, "Loading unsuccessful", "Could not open selected file or file format is not supported.");
         return nullptr;
     }
+
     map_model->fill_map();
 
     return map_model;
@@ -340,7 +341,7 @@ void CMapCreationController::process_simulation_start_request()
         return;
     }
 
-    bool simulation_started_successfully = m_application_controller->process_simulation_start_request(temp_map_file_path);
+    m_application_controller->process_simulation_start_request(temp_map_file_path);
 
     QFile temp_file(temp_map_file_path);
     temp_file.remove();

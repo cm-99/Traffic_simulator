@@ -9,8 +9,12 @@
 class CCar : public CRoadUser
 {
 public:
-    CCar(SRoadUsersBasicParameters basic_parameters, QPixmap car_pixmap);
+    static CRoadUser *create_car();
+
     virtual void move() override;
+
+private:
+    CCar(QPixmap car_pixmap, QString description, EMovementPlane starting_movement_plane);
 };
 
 #endif // CCAR_H

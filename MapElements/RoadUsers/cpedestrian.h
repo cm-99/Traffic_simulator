@@ -9,8 +9,18 @@
 class CPedestrian : public CRoadUser
 {
 public:
-    CPedestrian(SRoadUsersBasicParameters basic_parameters, QPixmap pedestrian_pixmap);
+    static CRoadUser *create_pedestrian();
     virtual void move() override;
+
+private:
+    /**
+     * @brief CPedestrian
+     * @param pedestrian_states_pixmaps - vector should contain 3 pixmaps in order - stationary pedestrian, pedestrian taking a step
+     * from one leg and pedestrian taking a step from another leg.
+     */
+    CPedestrian(QVector<QPixmap> pedestrian_states_pixmaps, QString description, EMovementPlane starting_movement_plane);
+    QVector<QPixmap> m_pedestrian_states_pixmaps;
+
 };
 
 #endif // CPEDESTRIAN_H

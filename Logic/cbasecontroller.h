@@ -28,7 +28,7 @@ public:
 
 protected:
     CEditableMap *m_map_model;
-    CBaseView *m_map_view;
+    CBaseView *m_map_view{nullptr};
     CApplicationController *m_application_controller;
 };
 

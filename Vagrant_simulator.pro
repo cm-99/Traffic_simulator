@@ -46,7 +46,9 @@ SOURCES += \
     UI/cmapelementsplacementwidget.cpp \
     UI/cmapselectionpage.cpp \
     UI/croadusersparametersinputwidget.cpp \
+    UI/croadusersplacementwidget.cpp \
     UI/csimulationconfigurationdialog.cpp \
+    UI/csimulationpage.cpp \
     UI/ctrafficlightsdurationinputwidget.cpp \
     UI/iuipage.cpp \
     main.cpp \
@@ -89,7 +91,9 @@ HEADERS += \
     UI/cmapelementsplacementwidget.h \
     UI/cmapselectionpage.h \
     UI/croadusersparametersinputwidget.h \
+    UI/croadusersplacementwidget.h \
     UI/csimulationconfigurationdialog.h \
+    UI/csimulationpage.h \
     UI/ctrafficlightsdurationinputwidget.h \
     UI/iuipage.h
 

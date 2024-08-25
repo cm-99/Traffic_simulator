@@ -9,6 +9,8 @@ enum  ERoadUsers {car, pedestrian};
 enum  EHorizontalMoveDirection {left, right};
 enum  EVerticalMoveDirection {up, down};
 
+class CReadOnlyMap;
+
 /**
  * @brief The SRoadUsersBasicParameters struct can be used to pass a full set of CRoadUser's basic parameters (attributes).
  */
@@ -28,6 +30,7 @@ struct SRoadUsersBasicParameters{
     double m_max_deceleration_value;
     double m_max_speed;
     double m_chance_of_breaking_law;
+    bool m_is_empty{true};
 
     explicit SRoadUsersBasicParameters(){};
     SRoadUsersBasicParameters(double forward_visibility_distance, double lateral_visibility_distance, double reaction_time,
@@ -40,6 +43,7 @@ struct SRoadUsersBasicParameters{
         m_max_deceleration_value = max_deceleration_value;
         m_max_speed = max_speed;
         m_chance_of_breaking_law = chance_of_breaking_law;
+        m_is_empty = false;
     }
 
     SRoadUsersBasicParameters(QVector<double> attributes_values){
@@ -50,7 +54,10 @@ struct SRoadUsersBasicParameters{
         m_max_deceleration_value = attributes_values[4];
         m_max_speed = attributes_values[5];
         m_chance_of_breaking_law = attributes_values[6];
+        m_is_empty = false;
     }
+
+    bool is_empty() const {return m_is_empty;}
 
     static int get_attributes_number(){
         return 7;
@@ -161,40 +168,62 @@ struct SRoadUsersBasicParameters{
 class CRoadUser: public QGraphicsPixmapItem
 {
 public:
-    CRoadUser(ERoadUsers road_user_type, QString description, EMovementPlane starting_movement_plane) :
-        m_starting_movement_plane(starting_movement_plane),
+    CRoadUser(ERoadUsers road_user_type, QString description, EMovementPlane movement_plane,
+              EHorizontalMoveDirection horizontal_move_direction, EVerticalMoveDirection vertical_move_direction) :
         m_road_user_type(road_user_type),
-        m_description(description) {setZValue(1);}
+        m_description(description),
+        m_horizontal_move_direction(horizontal_move_direction),
+        m_vertical_move_direction(vertical_move_direction),
+        m_current_movement_plane(movement_plane)
+        {setZValue(4);}
     /**
-     * @brief move is a main method for simulation purposes - it should cause the movement of a given object.
+     * @brief move is a main method for simulation purposes - it should cause the movement of a given object according to traffic laws.
      */
-    virtual void move() = 0;
+    virtual void move(CReadOnlyMap *map) = 0;
 
-    inline void set_basic_parameters(SRoadUsersBasicParameters parameters) {m_road_users_parameters = parameters;}
+    void set_basic_parameters(SRoadUsersBasicParameters parameters);
+    inline void set_current_movement_plane(EMovementPlane mp) {m_current_movement_plane = mp;}
+    inline void set_horizontal_move_direction(EHorizontalMoveDirection hmd) {m_horizontal_move_direction = hmd;}
+    inline void set_vertical_move_direction(EVerticalMoveDirection vmd) {m_vertical_move_direction = vmd;}
+    virtual void set_destination(QPointF destination, std::vector<QPoint> path) = 0;
 
     inline const SRoadUsersBasicParameters& get_basic_parameters() const {return m_road_users_parameters;}
     inline ERoadUsers get_road_user_type() const {return m_road_user_type;}
     inline QString get_description() const {return m_description;}
-    inline EMovementPlane get_starting_movement_plane() const {return m_starting_movement_plane;}
+    inline EMovementPlane get_current_movement_plane() const {return m_current_movement_plane;}
+    inline EHorizontalMoveDirection get_horizontal_move_direction() const {return m_horizontal_move_direction;}
+    inline EVerticalMoveDirection get_vertical_move_direction() const {return m_vertical_move_direction;}
+    inline bool has_designated_destination() const {return m_has_designated_destination;}
+    inline QPointF get_destination() const {return m_destination;}
     inline bool is_rotable() const {return m_is_rotable;}
 
 protected:
     SRoadUsersBasicParameters m_road_users_parameters;
+    SRoadUsersBasicParameters m_road_users_parameters_adjusted_to_step;
+    CReadOnlyMap *m_map;
+    QSize m_default_cell_size;
     /**
      * @brief m_designated_destination is to be used when implementing movement to designated point chosen by the user.
      */
-    QPointF m_designated_destination;
-
+    QPointF m_destination;
+    std::vector<QPoint> m_path_to_destination;
     bool m_has_designated_destination{false};
+
     bool m_is_involved_in_accident{false};
-    bool m_is_selected{false};
     bool m_is_rotable{true};
-    // EHorizontalMoveDirection m_horizontal_move_direction;
-    // EVerticalMoveDirection m_vertical_move_direction;
-    EMovementPlane m_starting_movement_plane;
-    double m_current_speed{0};
+
     ERoadUsers m_road_user_type;
     QString m_description;
+
+    EHorizontalMoveDirection m_horizontal_move_direction;
+    EVerticalMoveDirection m_vertical_move_direction;
+    EMovementPlane m_current_movement_plane;
+
+    double m_current_speed{0};
+    std::pair<double, double> m_speed_vector{0, 0};
+    void update_speed_vector();
+    void set_rotation_by_center(double degrees);
+    QPoint grid_point_to_map_point(QPoint grid_point);
 };
 
 #endif // CROADUSER_H

@@ -68,6 +68,14 @@ void CEditableMap::erase_road_user(CRoadUser *road_user_to_remove)
     delete road_user_to_remove;
 }
 
+void CEditableMap::erase_road_users()
+{
+    for(auto road_user : *m_road_users){
+        erase_road_user(road_user);
+    }
+
+}
+
 void CEditableMap::erase_item(QGraphicsItem *item)
 {
     removeItem(item);
@@ -80,6 +88,7 @@ void CEditableMap::erase_stationary_map_element(CStationaryMapElement *item)
 
     auto *traffic_light = dynamic_cast<CTrafficLight*>(item);
     if(traffic_light != nullptr){
+        traffic_light->break_all_lights_linking();
         m_traffic_lights->remove(m_traffic_lights->indexOf(traffic_light));
     }
 

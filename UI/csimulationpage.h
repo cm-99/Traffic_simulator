@@ -26,12 +26,16 @@ private:
     QPushButton *m_reconfigure_simulation_button;
 
     uint m_simulation_speed{1};
-    bool m_simulation_is_paused{true};
+    bool m_simulation_is_paused{false};
+    bool m_simulation_was_started{false};
 
 private slots:
     void slot_change_simulation_speed();
     void slot_change_simulation_state();
+    void slot_restart_simulation();
     void slot_reconfigure_simulation();
+    void slot_request_traffic_light_configuration(STrafficLightsDuration traffic_lights_duration, bool automatic_offset_is_disabled, bool is_disabled);
+    void slot_request_road_users_parameters(SRoadUsersBasicParameters parameters, ERoadUsers type);
 };
 
 #endif // CSIMULATIONPAGE_H

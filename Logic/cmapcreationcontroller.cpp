@@ -112,6 +112,44 @@ bool CMapCreationController::perform_final_map_validation()
     return true;
 }
 
+void CMapCreationController::fill_in_and_connect_lights(CEditableMap *map_model)
+{
+    auto traffic_lights = map_model->get_traffic_lights();
+    QList<CTrafficLight*> const_traffic_lights = QList<CTrafficLight*>(*traffic_lights);
+
+    for(auto traffic_light : const_traffic_lights){
+        if(traffic_light->is_linked()){
+            continue;
+        }
+
+        QPoint placement_position = QPoint(traffic_light->pos().x(), traffic_light->pos().y());
+        auto valid_sides = get_traffic_control_elements_valid_sides_with_types(placement_position);
+
+        std::pair<bool, int> light_is_corresponding_to_crossing = is_crossing_light(valid_sides, placement_position);
+
+        if(!light_is_corresponding_to_crossing.first){
+            fill_in_and_connect_pedestrian_crossing_light(map_model, traffic_light, valid_sides, placement_position);
+        }
+        else{
+            fill_in_and_connect_crossing_light(map_model, traffic_light, placement_position, light_is_corresponding_to_crossing.second);
+        }
+    }
+
+    auto all_traffic_lights = map_model->get_traffic_lights();
+    const_traffic_lights = QList<CTrafficLight*>(*all_traffic_lights);
+
+    for(auto traffic_light : const_traffic_lights){
+
+        QPoint placement_position = QPoint(traffic_light->pos().x(), traffic_light->pos().y());
+        auto valid_sides = get_traffic_control_elements_valid_sides_with_types(placement_position);
+        std::pair<bool, int> light_is_corresponding_to_crossing = is_crossing_light(valid_sides, placement_position);
+
+        if(light_is_corresponding_to_crossing.first){
+            fill_in_and_connect_crossing_light(map_model, traffic_light, placement_position, light_is_corresponding_to_crossing.second);
+        }
+    }
+}
+
 
 void CMapCreationController::add_guide_grid()
 {
@@ -301,6 +339,11 @@ void CMapCreationController::process_mouse_press_event(QMouseEvent *event)
             m_element_is_being_edited = true;
             prepare_validation_rect();
             update_validation_rect();
+
+            auto traffic_light = dynamic_cast<CTrafficLight*>(map_element);
+            if(traffic_light){
+                traffic_light->break_all_lights_linking();
+            }
 
             m_validation_rect->setTransformOriginPoint(m_validation_rect->boundingRect().center());
             m_validation_rect->setRotation(m_element_being_placed->rotation());
@@ -830,47 +873,641 @@ EMapElementPositionValidity CMapCreationController::get_traffic_control_element_
     return EMapElementPositionValidity::valid;
 }
 
-EMapElementPositionValidity CMapCreationController::get_traffic_control_element_position_validity_in_relation_to_surroundings(CStationaryMapElement *tc_element, QPoint placement_position)
+EMapElementPositionValidity CMapCreationController::get_traffic_control_element_position_validity_in_relation_to_surroundings(CTrafficControlElement *tc_element, QPoint placement_position)
+{
+    QVector<std::pair<int, ERoadElementType>> valid_sides = get_traffic_control_elements_valid_sides_with_types(placement_position);
+    if(valid_sides.isEmpty()){
+        return EMapElementPositionValidity::initially_valid;
+    }
+    else if(tc_element->get_traffic_control_element_type() == ETrafficControlElementType::traffic_sign){
+        return EMapElementPositionValidity::valid;
+    }
+
+    for(auto pair : valid_sides){
+        if(pair.second == ERoadElementType::pedestrian_crossing){
+            return EMapElementPositionValidity::valid;
+        }
+    }
+
+    if(tc_element->get_traffic_control_element_type() == ETrafficControlElementType::traffic_lights){
+        if(is_crossing_light(valid_sides, placement_position).first){
+            return EMapElementPositionValidity::valid;
+        }
+    }
+
+    return EMapElementPositionValidity::initially_valid;
+}
+
+QVector<std::pair<int, ERoadElementType>> CMapCreationController::get_traffic_control_elements_valid_sides_with_types(QPoint placement_position)
 {
     auto default_cell_size = CReadOnlyMap::get_default_cell_size();
     auto left_side_cell_center_pos = QPoint(placement_position.x() - default_cell_size.width()/2,
                                             placement_position.y() + default_cell_size.height()/2);
     auto right_side_cell_center_pos = QPoint(placement_position.x() + 1.5*default_cell_size.width(),
                                              placement_position.y() + default_cell_size.height()/2);
+    auto upper_cell_center_pos = QPoint(placement_position.x() + default_cell_size.width()/2,
+                                        placement_position.y() - default_cell_size.height()/2);
+    auto lower_cell_center_pos = QPoint(placement_position.x() + default_cell_size.width()/2,
+                                        placement_position.y() + 1.5*default_cell_size.height());
 
-    QList<QList<QGraphicsItem*>> side_cells_items;
-    side_cells_items.append(m_map_model->items(left_side_cell_center_pos));
-    side_cells_items.append(m_map_model->items(right_side_cell_center_pos));
-    int invalid_sides_counter = 0;
+    QList<QList<QGraphicsItem*>> adjacent_cells_items;
+    adjacent_cells_items.append(m_map_model->items(upper_cell_center_pos));
+    adjacent_cells_items.append(m_map_model->items(right_side_cell_center_pos));
+    adjacent_cells_items.append(m_map_model->items(lower_cell_center_pos));
+    adjacent_cells_items.append(m_map_model->items(left_side_cell_center_pos));
 
-    //Roadway at least on one side of the traffic control element is required
-    for(int i = 0; i < 2; i ++){
-        if(side_cells_items[i].size() != 0){
-            for(auto item : side_cells_items[i]){
-                if(item == tc_element)
-                    continue;
+    QVector<std::pair<int, ERoadElementType>> valid_sides_indexes_with_types;
+
+    //Roadway or pedestrian crossing at least on one side of the traffic control element is required
+    for(int i = 0; i < 4; i ++){
+        if(adjacent_cells_items[i].size() != 0){
+            for(auto item : adjacent_cells_items[i]){
 
                 auto road_element = dynamic_cast<CRoadElement*>(item);
                 if(!road_element)
                     continue;
 
-                if(road_element->get_road_element_type() == ERoadElementType::pavement){
-                    invalid_sides_counter++;
-                    break;
-                }
-
-                if(road_element->get_road_element_type() == ERoadElementType::roadway_element || road_element->get_road_element_type() == ERoadElementType::pedestrian_crossing){
-                    return EMapElementPositionValidity::valid;
+                if(road_element->get_road_element_type() != ERoadElementType::pavement){
+                    if(road_element->get_road_element_type() == ERoadElementType::pedestrian_crossing){
+                        valid_sides_indexes_with_types.append(std::pair<int, ERoadElementType>(i, ERoadElementType::pedestrian_crossing));
+                    }
+                    else{
+                        auto roadway_element = static_cast<CRoadwayElement*>(road_element);
+                        if(roadway_element->get_roadway_element_type() == ERoadwayElementType::roadway){
+                            valid_sides_indexes_with_types.append(std::pair<int, ERoadElementType>
+                                                                  (i, ERoadElementType::roadway_element));
+                        }
+                    }
                 }
             }
         }
     }
 
-    if(invalid_sides_counter == 2){
-        return EMapElementPositionValidity::invalid;
+    return valid_sides_indexes_with_types;
+}
+
+std::pair<bool, int> CMapCreationController::is_crossing_light(QVector<std::pair<int, ERoadElementType> > valid_sides, QPoint placement_position)
+{
+    auto default_cell_size = CReadOnlyMap::get_default_cell_size();
+
+    for(int i = 0; i < valid_sides.size(); i++){
+        QPoint probable_crossing_pos;
+
+        if(valid_sides[i].first == 0){
+            probable_crossing_pos = QPoint(placement_position.x() + 1.5*default_cell_size.width(),
+                                           placement_position.y() - default_cell_size.height()/2);
+        }
+        else if(valid_sides[i].first == 1){
+            probable_crossing_pos = QPoint(placement_position.x() + 1.5*default_cell_size.width(),
+                                           placement_position.y() + 1.5*default_cell_size.height());
+        }
+        else if(valid_sides[i].first == 2){
+            probable_crossing_pos = QPoint(placement_position.x() - default_cell_size.width()/2,
+                                           placement_position.y() + 1.5*default_cell_size.height());
+        }
+        else if(valid_sides[i].first == 3){
+            probable_crossing_pos = QPoint(placement_position.x() - default_cell_size.width()/2,
+                                           placement_position.y() - default_cell_size.height()/2);
+        }
+
+        auto items_at_diagonal_cell = m_map_model->items(probable_crossing_pos);
+        for(auto item : items_at_diagonal_cell){
+            auto it_is_crossing = dynamic_cast<CCrossing*>(item);
+            if(it_is_crossing){
+                return std::pair<bool, int>(true, valid_sides[i].first);
+            }
+        }
+    }
+    return std::pair<bool, int>(false, -1);
+}
+
+CTrafficLight* CMapCreationController::add_corresponding_light(CEditableMap *map_model, QPointF corresponding_light_pos, CTrafficLight *tl)
+{
+    auto t_light = CTrafficLight::create_collision_possible_traffic_lights();
+    t_light->setPos(corresponding_light_pos);
+
+    auto traffic_light = static_cast<CTrafficLight*>(t_light);
+    tl->set_corresponding_light(traffic_light);
+    traffic_light->set_corresponding_light(tl);
+
+    map_model->add_stationary_map_element(t_light, get_element_placement_position_snapped_to_grid(t_light));
+    return traffic_light;
+}
+
+void CMapCreationController::fill_in_and_connect_pedestrian_crossing_light(CEditableMap *map_model, CTrafficLight *tl, QVector<std::pair<int, ERoadElementType>> &valid_sides, QPoint &placement_position)
+{
+    int x_offset = 2;
+    int y_offset = 2;
+    auto default_cell_size = CReadOnlyMap::get_default_cell_size();
+
+    int pedestrian_crossing_side = -1;
+    for(auto valid_side : valid_sides){
+        if(valid_side.second == ERoadElementType::pedestrian_crossing){
+            pedestrian_crossing_side = valid_side.first;
+            break;
+        }
     }
 
-    return EMapElementPositionValidity::initially_valid;
+    if(pedestrian_crossing_side == -1){
+        qDebug()<<"Logical error";
+        return;
+    }
+
+    int cells_to_traverse = 1;
+    QPointF corresponding_light_pos;
+
+    if(pedestrian_crossing_side == 0){
+        QPoint first_pc_element_pos =
+            QPoint(placement_position.x() + x_offset, placement_position.y() - default_cell_size.height()/2);
+
+        QPointF next_pc_pos =
+            QPointF(first_pc_element_pos.x(), first_pc_element_pos.y() - default_cell_size.height());
+
+        CPedestrianCrossing *probable_pc = dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(next_pc_pos, m_map_view->transform()));
+
+        while(probable_pc != nullptr){
+            cells_to_traverse++;
+            next_pc_pos =
+                QPointF(next_pc_pos.x(), next_pc_pos.y() - default_cell_size.height());
+            probable_pc = dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(next_pc_pos, m_map_view->transform()));
+        }
+
+        corresponding_light_pos =
+            QPointF(placement_position.x() + x_offset,
+                    placement_position.y() - cells_to_traverse*default_cell_size.height() - tl->boundingRect().height() + y_offset);
+    }
+    else if(pedestrian_crossing_side == 1){
+        QPoint first_pc_element_pos =
+            QPoint(placement_position.x() + x_offset + default_cell_size.width(), placement_position.y() + y_offset);
+
+        QPointF next_pc_pos =
+            QPointF(first_pc_element_pos.x() + default_cell_size.width(), first_pc_element_pos.y());
+
+        CPedestrianCrossing *probable_pc = dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(next_pc_pos, m_map_view->transform()));
+
+        while(probable_pc != nullptr){
+            cells_to_traverse++;
+            next_pc_pos =
+                QPointF(next_pc_pos.x() + default_cell_size.width(), next_pc_pos.y());
+            probable_pc = dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(next_pc_pos, m_map_view->transform()));
+        }
+
+        corresponding_light_pos =
+            QPointF(placement_position.x() + x_offset + default_cell_size.width() + cells_to_traverse*default_cell_size.width(),
+                    placement_position.y() + y_offset);
+    }
+    else if(pedestrian_crossing_side == 2){
+        QPoint first_pc_element_pos =
+            QPoint(placement_position.x() + x_offset, placement_position.y() + tl->boundingRect().height() + default_cell_size.height()/2);
+
+        QPointF next_pc_pos =
+            QPointF(first_pc_element_pos.x(), first_pc_element_pos.y() + default_cell_size.height());
+
+        CPedestrianCrossing *probable_pc = dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(next_pc_pos, m_map_view->transform()));
+
+        while(probable_pc != nullptr){
+            cells_to_traverse++;
+            next_pc_pos =
+                QPointF(next_pc_pos.x(), next_pc_pos.y() + default_cell_size.height());
+            probable_pc = dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(next_pc_pos, m_map_view->transform()));
+        }
+
+        corresponding_light_pos =
+            QPointF(placement_position.x() + x_offset,
+                    placement_position.y() + cells_to_traverse*default_cell_size.height() + tl->boundingRect().height() + y_offset);
+    }
+    else if(pedestrian_crossing_side == 3){
+        QPoint first_pc_element_pos =
+            QPoint(placement_position.x() + x_offset - default_cell_size.width(), placement_position.y() + y_offset);
+
+        QPointF next_pc_pos =
+            QPointF(first_pc_element_pos.x() - default_cell_size.width(), first_pc_element_pos.y());
+
+        CPedestrianCrossing *probable_pc = dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(next_pc_pos, m_map_view->transform()));
+
+        while(probable_pc != nullptr){
+            cells_to_traverse++;
+            next_pc_pos =
+                QPointF(next_pc_pos.x() - default_cell_size.width(), next_pc_pos.y());
+            probable_pc = dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(next_pc_pos, m_map_view->transform()));
+        }
+
+        corresponding_light_pos =
+            QPointF(placement_position.x() + x_offset - cells_to_traverse*default_cell_size.width() - tl->boundingRect().width(),
+                    placement_position.y() + y_offset);
+    }
+
+    auto opposing_light = dynamic_cast<CTrafficLight*>(map_model->itemAt(corresponding_light_pos, m_map_view->transform()));
+    if(opposing_light == nullptr){
+        add_corresponding_light(map_model, corresponding_light_pos, tl);
+    }
+    else{
+        tl->set_corresponding_light(opposing_light);
+        opposing_light->set_corresponding_light(tl);
+    }
+}
+
+CTrafficLight* CMapCreationController::add_opposing_light(CEditableMap *map_model, QPointF opposing_light_pos, CTrafficLight *tl)
+{
+    auto t_light = CTrafficLight::create_collision_possible_traffic_lights();
+    t_light->setPos(opposing_light_pos);
+
+    auto traffic_light = static_cast<CTrafficLight*>(t_light);
+    tl->add_opposing_light(traffic_light);
+    traffic_light->add_opposing_light(tl);
+
+    map_model->add_stationary_map_element(t_light, get_element_placement_position_snapped_to_grid(t_light));
+    return traffic_light;
+}
+
+void CMapCreationController::fill_in_and_connect_crossing_light(CEditableMap *map_model, CTrafficLight *tl, QPoint &placement_position, int crossing_placement)
+{
+    tl->set_is_crossing_light();
+    auto default_cell_size = CReadOnlyMap::get_default_cell_size();
+    QPoint crossing_pos;
+
+    if(crossing_placement == 0){
+        crossing_pos = QPoint(placement_position.x() + 1.5*default_cell_size.width(),
+                                       placement_position.y() - default_cell_size.height()/2);
+    }
+    else if(crossing_placement == 1){
+        crossing_pos = QPoint(placement_position.x() + 1.5*default_cell_size.width(),
+                                       placement_position.y() + 1.5*default_cell_size.height());
+    }
+    else if(crossing_placement == 2){
+        crossing_pos = QPoint(placement_position.x() - default_cell_size.width()/2,
+                                       placement_position.y() + 1.5*default_cell_size.height());
+    }
+    else if(crossing_placement == 3){
+        crossing_pos = QPoint(placement_position.x() - default_cell_size.width()/2,
+                                       placement_position.y() - default_cell_size.height()/2);
+    }
+
+    auto crossing = dynamic_cast<CCrossing*>(m_map_model->itemAt(crossing_pos, m_map_view->transform()));
+    if(!crossing){
+        qDebug()<<"Logical error 02";
+        return;
+    }
+
+    auto cr_size = crossing->boundingRect().size();
+    auto tl_size = tl->boundingRect().size();
+
+    QVector<int> cr_valid_sides = get_crossing_valid_sides(crossing);
+    int x_offset = 5;
+    int y_offset = 5;
+
+    if(crossing_placement == 0){
+        if(cr_valid_sides.contains(1)){
+            QPointF corresponding_light_pos = QPointF(tl->pos().x() + default_cell_size.width() + cr_size.width() + x_offset,
+                                                      tl->pos().y() - cr_size.height() - tl_size.height() + y_offset);
+
+            CTrafficLight* corresponding_light = nullptr;
+
+            auto items = map_model->items(corresponding_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    corresponding_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(corresponding_light == nullptr){
+                corresponding_light = add_corresponding_light(map_model, corresponding_light_pos, tl);
+            }
+            else{
+                tl->set_corresponding_light(corresponding_light);
+                corresponding_light->set_corresponding_light(tl);
+            }
+
+            corresponding_light->set_is_crossing_light();
+        }
+
+        if(cr_valid_sides.contains(0)){
+            QPointF opposing_light_pos = QPointF(tl->pos().x() + x_offset,
+                                                      tl->pos().y() - cr_size.height() - tl_size.height() + y_offset);
+
+            CTrafficLight* opposing_light = nullptr;
+
+            auto items = map_model->items(opposing_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    opposing_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(opposing_light == nullptr){
+                opposing_light = add_opposing_light(map_model, opposing_light_pos, tl);
+            }
+            else{
+                tl->add_opposing_light(opposing_light);
+                opposing_light->add_opposing_light(tl);
+            }
+
+            opposing_light->set_is_crossing_light();
+        }
+
+        if(cr_valid_sides.contains(2)){
+            QPointF opposing_light_pos = QPointF(tl->pos().x() + default_cell_size.width() + cr_size.width() + x_offset ,
+                                                 tl->pos().y() + y_offset);
+
+            CTrafficLight* opposing_light = nullptr;
+
+            auto items = map_model->items(opposing_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    opposing_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(opposing_light == nullptr){
+                opposing_light = add_opposing_light(map_model, opposing_light_pos, tl);
+            }
+            else{
+                tl->add_opposing_light(opposing_light);
+                opposing_light->add_opposing_light(tl);
+            }
+
+            opposing_light->set_is_crossing_light();
+        }
+    }
+    else if(crossing_placement == 1){
+        if(cr_valid_sides.contains(2)){
+            QPointF corresponding_light_pos = QPointF(tl->pos().x() + default_cell_size.width() + cr_size.width() + x_offset,
+                                                      tl->pos().y() + cr_size.height() + default_cell_size.height() + y_offset);
+
+            CTrafficLight* corresponding_light = nullptr;
+
+            auto items = map_model->items(corresponding_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    corresponding_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(corresponding_light == nullptr){
+                corresponding_light = add_corresponding_light(map_model, corresponding_light_pos, tl);
+            }
+            else{
+                tl->set_corresponding_light(corresponding_light);
+                corresponding_light->set_corresponding_light(tl);
+            }
+
+            corresponding_light->set_is_crossing_light();
+        }
+
+        if(cr_valid_sides.contains(3)){
+            QPointF opposing_light_pos = QPointF(tl->pos().x() + x_offset,
+                                                 tl->pos().y() + cr_size.height() + default_cell_size.height() + y_offset);
+
+            CTrafficLight* opposing_light = nullptr;
+
+            auto items = map_model->items(opposing_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    opposing_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(opposing_light == nullptr){
+                opposing_light = add_opposing_light(map_model, opposing_light_pos, tl);
+            }
+            else{
+                tl->add_opposing_light(opposing_light);
+                opposing_light->add_opposing_light(tl);
+            }
+
+            opposing_light->set_is_crossing_light();
+        }
+
+        if(cr_valid_sides.contains(1)){
+            QPointF opposing_light_pos = QPointF(tl->pos().x() + default_cell_size.width() + cr_size.width() + x_offset ,
+                                                 tl->pos().y() + y_offset);
+
+            CTrafficLight* opposing_light = nullptr;
+
+            auto items = map_model->items(opposing_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    opposing_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(opposing_light == nullptr){
+                opposing_light = add_opposing_light(map_model, opposing_light_pos, tl);
+            }
+            else{
+                tl->add_opposing_light(opposing_light);
+                opposing_light->add_opposing_light(tl);
+            }
+
+            opposing_light->set_is_crossing_light();
+        }
+    }
+    else if(crossing_placement == 2){
+        if(cr_valid_sides.contains(3)){
+            QPointF corresponding_light_pos = QPointF(tl->pos().x() - default_cell_size.width() - cr_size.width() + x_offset,
+                                                      tl->pos().y() + cr_size.height() + default_cell_size.height() + y_offset);
+
+            CTrafficLight* corresponding_light = nullptr;
+
+            auto items = map_model->items(corresponding_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    corresponding_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(corresponding_light == nullptr){
+                corresponding_light = add_corresponding_light(map_model, corresponding_light_pos, tl);
+            }
+            else{
+                tl->set_corresponding_light(corresponding_light);
+                corresponding_light->set_corresponding_light(tl);
+            }
+
+            corresponding_light->set_is_crossing_light();
+        }
+
+        if(cr_valid_sides.contains(2)){
+            QPointF opposing_light_pos = QPointF(tl->pos().x() + x_offset,
+                                                 tl->pos().y() + cr_size.height() + default_cell_size.height() + y_offset);
+
+            CTrafficLight* opposing_light = nullptr;
+
+            auto items = map_model->items(opposing_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    opposing_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(opposing_light == nullptr){
+                opposing_light = add_opposing_light(map_model, opposing_light_pos, tl);
+            }
+            else{
+                tl->add_opposing_light(opposing_light);
+                opposing_light->add_opposing_light(tl);
+            }
+
+            opposing_light->set_is_crossing_light();
+        }
+
+        if(cr_valid_sides.contains(0)){
+            QPointF opposing_light_pos = QPointF(tl->pos().x() - default_cell_size.width() - cr_size.width() + x_offset ,
+                                                 tl->pos().y() + y_offset);
+
+            CTrafficLight* opposing_light = nullptr;
+
+            auto items = map_model->items(opposing_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    opposing_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(opposing_light == nullptr){
+                opposing_light = add_opposing_light(map_model, opposing_light_pos, tl);
+            }
+            else{
+                tl->add_opposing_light(opposing_light);
+                opposing_light->add_opposing_light(tl);
+            }
+
+            opposing_light->set_is_crossing_light();
+        }
+    }
+    else if(crossing_placement == 3){
+        if(cr_valid_sides.contains(0)){
+            QPointF corresponding_light_pos = QPointF(tl->pos().x() - default_cell_size.width() - cr_size.width() + x_offset,
+                                                      tl->pos().y() - cr_size.height() - tl_size.height() + y_offset);
+
+            CTrafficLight* corresponding_light = nullptr;
+
+            auto items = map_model->items(corresponding_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    corresponding_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(corresponding_light == nullptr){
+                corresponding_light = add_corresponding_light(map_model, corresponding_light_pos, tl);
+            }
+            else{
+                tl->set_corresponding_light(corresponding_light);
+                corresponding_light->set_corresponding_light(tl);
+            }
+            corresponding_light->set_is_crossing_light();
+        }
+
+        if(cr_valid_sides.contains(1)){
+            QPointF opposing_light_pos = QPointF(tl->pos().x() + x_offset,
+                                                 tl->pos().y() - cr_size.height() - tl_size.height() + y_offset);
+
+            CTrafficLight* opposing_light = nullptr;
+
+            auto items = map_model->items(opposing_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    opposing_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(opposing_light == nullptr){
+                opposing_light = add_opposing_light(map_model, opposing_light_pos, tl);
+            }
+            else{
+                tl->add_opposing_light(opposing_light);
+                opposing_light->add_opposing_light(tl);
+            }
+
+            opposing_light->set_is_crossing_light();
+        }
+
+        if(cr_valid_sides.contains(3)){
+            QPointF opposing_light_pos = QPointF(tl->pos().x() - default_cell_size.width() - cr_size.width() + x_offset ,
+                                                 tl->pos().y() + y_offset);
+
+            CTrafficLight* opposing_light = nullptr;
+
+            auto items = map_model->items(opposing_light_pos);
+            for(auto item : items){
+                auto traffic_light = dynamic_cast<CTrafficLight*>(item);
+                if(traffic_light != nullptr){
+                    opposing_light = traffic_light;
+                    break;
+                }
+            }
+
+            if(opposing_light == nullptr){
+                opposing_light = add_opposing_light(map_model, opposing_light_pos, tl);
+            }
+            else{
+                tl->add_opposing_light(opposing_light);
+                opposing_light->add_opposing_light(tl);
+            }
+
+            opposing_light->set_is_crossing_light();
+        }
+    }
+
+}
+
+QVector<int> CMapCreationController::get_crossing_valid_sides(CCrossing *cr)
+{
+    QVector<int> valid_sides;
+    int x_offset = 2;
+    int y_offset = 2;
+
+    auto cr_size = cr->boundingRect().size();
+    auto cell_size = CReadOnlyMap::get_default_cell_size();
+
+    QPoint side_cell_pos = QPoint(cr->pos().x() + cr_size.width()/2 + x_offset, cr->pos().y() - cell_size.height()/2 + y_offset);
+    if(dynamic_cast<CRoadway*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform())) ||
+        dynamic_cast<CPedestrianCrossing*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform()))){
+        valid_sides.append(0);
+    }
+
+    side_cell_pos = QPoint(cr->pos().x() + cr_size.width() + cell_size.width()/2 + x_offset, cr->pos().y() + cr_size.height()/2 + y_offset);
+    if(dynamic_cast<CRoadway*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform())) ||
+        dynamic_cast<CPedestrianCrossing*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform()))){
+        valid_sides.append(1);
+    }
+
+    side_cell_pos = QPoint(cr->pos().x() + cr_size.width()/2 + x_offset, cr->pos().y() + cr_size.height() + cell_size.height()/2 + y_offset);
+    if(dynamic_cast<CRoadway*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform())) ||
+        dynamic_cast<CPedestrianCrossing*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform()))){
+        valid_sides.append(2);
+    }
+
+    side_cell_pos = QPoint(cr->pos().x() -  cell_size.width()/2 + x_offset, cr->pos().y() + cr_size.height()/2 + y_offset);
+    if(dynamic_cast<CRoadway*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform())) ||
+        dynamic_cast<CPedestrianCrossing*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform()))){
+        valid_sides.append(3);
+    }
+
+    return valid_sides;
 }
 
 EMapElementPositionValidity CMapCreationController::get_element_position_validity(CStationaryMapElement *element, QPoint placement_position)

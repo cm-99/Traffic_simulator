@@ -1,12 +1,11 @@
 #ifndef CMAPELEMENTSPLACEMENTWIDGET_H
 #define CMAPELEMENTSPLACEMENTWIDGET_H
 
-#include "MapElements/StationaryMapElements/croadelement.h"
-#include "MapElements/StationaryMapElements/ctrafficcontrolelement.h"
 #include "UI/cexpandablewidget.h"
 #include "qpushbutton.h"
 #include <QWidget>
 #include <QFormLayout>
+#include "MapElements/cstationarymapelement.h"
 
 class CMapCreationPage;
 

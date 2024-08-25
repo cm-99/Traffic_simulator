@@ -13,6 +13,7 @@ SOURCES += \
     Logic/MapModels/ceditablemap.cpp \
     Logic/MapViews/cmapcreationview.cpp \
     Logic/MapViews/csimulationview.cpp \
+    Logic/astarmappathfinder.cpp \
     Logic/capplicationcontroller.cpp \
     Logic/cbasecontroller.cpp \
     Logic/MapModels/creadonlymap.cpp \
@@ -46,6 +47,7 @@ SOURCES += \
     UI/cmapelementsplacementwidget.cpp \
     UI/cmapselectionpage.cpp \
     UI/croadusersparametersinputwidget.cpp \
+    UI/croadusersparametersrangeinputwidget.cpp \
     UI/croadusersplacementwidget.cpp \
     UI/csimulationconfigurationdialog.cpp \
     UI/csimulationpage.cpp \
@@ -58,6 +60,7 @@ HEADERS += \
     Logic/MapModels/ceditablemap.h \
     Logic/MapViews/cmapcreationview.h \
     Logic/MapViews/csimulationview.h \
+    Logic/astarmappathfinder.h \
     Logic/capplicationcontroller.h \
     Logic/cbasecontroller.h \
     Logic/MapModels/creadonlymap.h \
@@ -91,6 +94,7 @@ HEADERS += \
     UI/cmapelementsplacementwidget.h \
     UI/cmapselectionpage.h \
     UI/croadusersparametersinputwidget.h \
+    UI/croadusersparametersrangeinputwidget.h \
     UI/croadusersplacementwidget.h \
     UI/csimulationconfigurationdialog.h \
     UI/csimulationpage.h \

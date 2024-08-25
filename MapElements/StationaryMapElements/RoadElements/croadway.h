@@ -6,7 +6,7 @@
 /**
  * @brief The ERoadSurfaceMarking enum stores roadway markings to enable implementation of lane changing, turning and overtaking
  */
-enum ERoadSurfaceMarking {none, single_dotted_line, single_continuous, double_continuous_line};
+enum ERoadSurfaceMarking {neither, single_dotted_line, single_continuous, double_continuous_line};
 
 /**
  * @brief The CRoadway class can be used to represent different types of roadways depending on initialization arguments.

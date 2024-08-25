@@ -11,7 +11,7 @@ class CTrafficLightsDurationInputWidget : public QFrame
 public:
     CTrafficLightsDurationInputWidget();
     CTrafficLightsDurationInputWidget(STrafficLightsDuration traffic_lights_duration);
-    STrafficLightsDuration get_traffic_lights_duration();
+    STrafficLightsDuration get_traffic_lights_duration_in_sec();
     void check_input_validity();
 
 private:

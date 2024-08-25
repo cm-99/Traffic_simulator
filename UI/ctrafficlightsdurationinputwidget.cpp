@@ -1,13 +1,14 @@
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QMessageBox>
+#include <QLabel>
 
-#include "cexpandablewidget.h"
 #include "ctrafficlightsdurationinputwidget.h"
 
 CTrafficLightsDurationInputWidget::CTrafficLightsDurationInputWidget() {
 
-    auto content_layout = new QFormLayout();
+    auto main_layout = new QFormLayout();
+    main_layout->addWidget(new QLabel("Traffic lights durations"));
 
     //TODO: refactor this. Implement methods similar to SRoadUsersBasicParameters and use them instead
     m_green_light_duration_spin_box.setMinimum(10);
@@ -26,23 +27,18 @@ CTrafficLightsDurationInputWidget::CTrafficLightsDurationInputWidget() {
     m_yellow_and_red_light_duration_spin_box.setMaximum(5);
     m_yellow_and_red_light_duration_spin_box.setValue(1);
 
-    content_layout->addRow("Green light duration [s]", &m_green_light_duration_spin_box);
-    content_layout->addRow("Yellow light duration [s]", &m_yellow_light_duration_spin_box);
-    content_layout->addRow("Red light duration [s]", &m_red_light_duration_spin_box);
-    content_layout->addRow("Red and yellow light duration [s]", &m_yellow_and_red_light_duration_spin_box);
+    main_layout->addRow("Green light duration [s]", &m_green_light_duration_spin_box);
+    main_layout->addRow("Yellow light duration [s]", &m_yellow_light_duration_spin_box);
+    main_layout->addRow("Red light duration [s]", &m_red_light_duration_spin_box);
+    main_layout->addRow("Red and yellow light duration [s]", &m_yellow_and_red_light_duration_spin_box);
 
-    auto expandable_widget = new CExpandableWidget("Traffic lights durations", 300, this);
-    expandable_widget->set_content_layout(*content_layout);
-    auto wrapper_layout = new QVBoxLayout(this);
-    wrapper_layout->addWidget(expandable_widget);
-
-    this->setLayout(wrapper_layout);
-    expandable_widget->slot_toggle(true);
+    this->setLayout(main_layout);
 }
 
 CTrafficLightsDurationInputWidget::CTrafficLightsDurationInputWidget(STrafficLightsDuration traffic_lights_duration)
 {
-    auto content_layout = new QFormLayout();
+    auto main_layout = new QFormLayout();
+    main_layout->addWidget(new QLabel("Traffic lights durations"));
 
     m_green_light_duration_spin_box.setMinimum(10);
     m_green_light_duration_spin_box.setMaximum(70);
@@ -60,21 +56,15 @@ CTrafficLightsDurationInputWidget::CTrafficLightsDurationInputWidget(STrafficLig
     m_yellow_and_red_light_duration_spin_box.setMaximum(5);
     m_yellow_and_red_light_duration_spin_box.setValue(traffic_lights_duration.m_red_and_yellow_ligths_duration);
 
-    content_layout->addRow("Green light duration [s]", &m_green_light_duration_spin_box);
-    content_layout->addRow("Yellow light duration [s]", &m_yellow_light_duration_spin_box);
-    content_layout->addRow("Red light duration [s]", &m_red_light_duration_spin_box);
-    content_layout->addRow("Red and yellow light duration [s]", &m_yellow_and_red_light_duration_spin_box);
+    main_layout->addRow("Green light duration [s]", &m_green_light_duration_spin_box);
+    main_layout->addRow("Yellow light duration [s]", &m_yellow_light_duration_spin_box);
+    main_layout->addRow("Red light duration [s]", &m_red_light_duration_spin_box);
+    main_layout->addRow("Red and yellow light duration [s]", &m_yellow_and_red_light_duration_spin_box);
 
-    auto expandable_widget = new CExpandableWidget("Traffic lights durations", 300, this);
-    expandable_widget->set_content_layout(*content_layout);
-    auto wrapper_layout = new QVBoxLayout(this);
-    wrapper_layout->addWidget(expandable_widget);
-
-    this->setLayout(wrapper_layout);
-    expandable_widget->slot_toggle(true);
+    this->setLayout(main_layout);
 }
 
-STrafficLightsDuration CTrafficLightsDurationInputWidget::get_traffic_lights_duration()
+STrafficLightsDuration CTrafficLightsDurationInputWidget::get_traffic_lights_duration_in_sec()
 {
     return STrafficLightsDuration(m_green_light_duration_spin_box.value(), m_yellow_light_duration_spin_box.value(),
                            m_red_light_duration_spin_box.value(), m_yellow_and_red_light_duration_spin_box.value());

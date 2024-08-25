@@ -1,25 +1,21 @@
 #ifndef CROADUSERSPARAMETERSINPUTWIDGET_H
 #define CROADUSERSPARAMETERSINPUTWIDGET_H
 
-#include <QFrame>
-#include <QSpinBox>
+#include <QWidget>
+#include <QDoubleSpinBox>
 
 #include "MapElements/croaduser.h"
 
-class CRoadUsersParametersInputWidget : public QFrame
+class CRoadUsersParametersInputWidget : public QWidget
 {
+    Q_OBJECT
 public:
-    CRoadUsersParametersInputWidget(QString title, ERoadUsers road_users_type);
-    CRoadUsersParametersInputWidget(QString title,
-                std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters> min_max_and_mean_parameters);
-
-    std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters>
-    get_road_users_min_max_and_mean_basic_parameters();
+    explicit CRoadUsersParametersInputWidget(SRoadUsersBasicParameters parameters, ERoadUsers type);
+    SRoadUsersBasicParameters get_road_users_parameters();
 
 private:
-    QVector<QDoubleSpinBox*> m_min_parameters_spin_boxes;
-    QVector<QDoubleSpinBox*> m_max_parameters_spin_boxes;
-    QVector<QDoubleSpinBox*> m_mean_parameters_spin_boxes;
+    QVector<QDoubleSpinBox*> m_parameters_spin_boxes;
+
 };
 
 #endif // CROADUSERSPARAMETERSINPUTWIDGET_H

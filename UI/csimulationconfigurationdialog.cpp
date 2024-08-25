@@ -27,28 +27,32 @@ CSimulationConfigurationDialog::CSimulationConfigurationDialog()
     auto third_page_widget = new QWidget();
     auto third_page_layout = new QVBoxLayout();
     auto tp_form_layout = new QFormLayout();
+    auto lights_synchronization_disabled_check_box = new QCheckBox();
+    auto lights_random_offset_disabled_check_box = new QCheckBox();
     auto automatic_placement_check_box = new QCheckBox();
     auto cars_number_spin_box = new QSpinBox();
+    cars_number_spin_box->setMaximum(1000);
     cars_number_spin_box->setDisabled(true);
     auto pedestrians_number_spin_box = new QSpinBox();
+    pedestrians_number_spin_box->setMaximum(1000);
     pedestrians_number_spin_box->setDisabled(true);
     auto tp_buttons_layout = new QHBoxLayout();
     auto tp_previous_button = new QPushButton("Previous");
     auto start_simulation_button = new QPushButton("Start simulation");
 
     if(m_simulation_configuration.is_empty()){
-        m_cars_parameters_input_widget = new CRoadUsersParametersInputWidget("Cars simulation parameters", ERoadUsers::car);
-        m_pedestrians_parameters_input_widget = new CRoadUsersParametersInputWidget("Pedestrians simulation parameters",
+        m_cars_parameters_input_widget = new CRoadUsersParametersRangeInputWidget("Cars simulation parameters", ERoadUsers::car);
+        m_pedestrians_parameters_input_widget = new CRoadUsersParametersRangeInputWidget("Pedestrians simulation parameters",
                                                                                     ERoadUsers::pedestrian);
         m_traffic_lights_duration_input_widget = new CTrafficLightsDurationInputWidget();
     }
     else{
-        m_cars_parameters_input_widget = new CRoadUsersParametersInputWidget("Cars simulation parameters",
+        m_cars_parameters_input_widget = new CRoadUsersParametersRangeInputWidget("Cars simulation parameters",
         std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters>
         (m_simulation_configuration.m_cars_min_basic_parameters, m_simulation_configuration.m_cars_max_basic_parameters,
          m_simulation_configuration.m_cars_mean_basic_parameters));
 
-        m_pedestrians_parameters_input_widget = new CRoadUsersParametersInputWidget("Pedestrians simulation parameters",
+        m_pedestrians_parameters_input_widget = new CRoadUsersParametersRangeInputWidget("Pedestrians simulation parameters",
         std::tuple<SRoadUsersBasicParameters, SRoadUsersBasicParameters, SRoadUsersBasicParameters>
         (m_simulation_configuration.m_pedestrians_min_basic_parameters, m_simulation_configuration.m_pedestrians_max_basic_parameters,
          m_simulation_configuration.m_pedestrians_mean_basic_parameters));
@@ -74,6 +78,8 @@ CSimulationConfigurationDialog::CSimulationConfigurationDialog()
     third_page_layout->addWidget(m_traffic_lights_duration_input_widget);
     third_page_layout->addLayout(tp_form_layout);
     third_page_layout->addLayout(tp_buttons_layout);
+    tp_form_layout->addRow("Disable lights automatic synchronization", lights_synchronization_disabled_check_box);
+    tp_form_layout->addRow("Disable lights random offset", lights_random_offset_disabled_check_box);
     tp_form_layout->addRow("Automatically place cars and pedestrians", automatic_placement_check_box);
     tp_form_layout->addRow("Cars number", cars_number_spin_box);
     tp_form_layout->addRow("Pedestrians number", pedestrians_number_spin_box);
@@ -134,7 +140,9 @@ CSimulationConfigurationDialog::CSimulationConfigurationDialog()
                                                               std::get<0>(min_max_and_mean_pedestrians_parameters),
                                                               std::get<2>(min_max_and_mean_pedestrians_parameters),
                                                               std::get<1>(min_max_and_mean_pedestrians_parameters),
-                                                              m_traffic_lights_duration_input_widget->get_traffic_lights_duration(),
+                                                              m_traffic_lights_duration_input_widget->get_traffic_lights_duration_in_sec(),
+                                                              lights_synchronization_disabled_check_box->isChecked(),
+                                                              lights_random_offset_disabled_check_box->isChecked(),
                                                               automatic_placement_check_box->isChecked(), cars_to_place,
                                                               pedestrians_to_place);
         this->done(QDialog::Accepted);

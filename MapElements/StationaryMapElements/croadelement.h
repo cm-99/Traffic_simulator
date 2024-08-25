@@ -3,7 +3,7 @@
 
 #include "MapElements/cstationarymapelement.h"
 
-enum EPermittedRoadUsers{cars, pedestrians, all};
+enum EPermittedRoadUsers{cars, pedestrians, all, none};
 enum ERoadElementType{pavement = 0, roadway_element = 1, pedestrian_crossing = 2};
 enum EMovementPlane{horizontal, vertical, any};
 

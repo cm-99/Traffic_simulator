@@ -1,7 +1,11 @@
 #include "csimulationpage.h"
+#include "UI/ctrafficlightsdurationinputwidget.h"
+#include "UI/croadusersparametersinputwidget.h"
 #include "cmainwindow.h"
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QLabel>
+#include <QCheckBox>
 
 CSimulationPage::CSimulationPage(CSimulationController *simulation_controller, QWidget *parent) :
     m_simulation_controller(simulation_controller)
@@ -41,8 +45,10 @@ CSimulationPage::CSimulationPage(CSimulationController *simulation_controller, Q
 
     connect(m_simulation_speed_button, &QPushButton::clicked, this, &CSimulationPage::slot_change_simulation_speed);
     connect(m_start_button, &QPushButton::clicked, this, &CSimulationPage::slot_change_simulation_state);
-    connect(m_restart_simulation_button, &QPushButton::clicked, this, [=](){simulation_controller->restart_simulation();});
+    connect(m_restart_simulation_button, &QPushButton::clicked, this, &CSimulationPage::slot_restart_simulation);
     connect(m_reconfigure_simulation_button, &QPushButton::clicked, this, &CSimulationPage::slot_reconfigure_simulation);
+    connect(m_simulation_controller, &CSimulationController::signal_traffic_light_configuration_requested, this, &CSimulationPage::slot_request_traffic_light_configuration);
+    connect(m_simulation_controller, &CSimulationController::signal_road_user_configuration_requested, this, &CSimulationPage::slot_request_road_users_parameters);
 
     int height_hint = m_start_button->sizeHint().height();
     simulation_buttons_layout->addWidget(m_start_button);
@@ -66,7 +72,11 @@ CSimulationPage::~CSimulationPage()
 
 void CSimulationPage::restore_to_default()
 {
-    m_simulation_controller->pause_simulation();
+    if(m_simulation_was_started && !m_simulation_is_paused){
+        m_simulation_controller->pause_simulation();
+        m_simulation_is_paused = true;
+    }
+
     m_simulation_speed = 1;
     m_simulation_controller->set_simulation_speed(1);
 
@@ -105,8 +115,16 @@ void CSimulationPage::slot_change_simulation_state()
         QMessageBox::information(this, "", "Place at least one road user to enable simulation.");
     }
     else{
-        if(m_simulation_is_paused){
-            m_simulation_controller->start_simulation();
+        if(!m_simulation_was_started || m_simulation_is_paused){
+            if(!m_simulation_was_started){
+                m_simulation_was_started = true;
+                m_simulation_controller->start_simulation();
+            }
+            else{
+                m_simulation_controller->resume_simulation();
+                m_simulation_is_paused = false;
+            }
+
             QPixmap start_pixmap(":/graphics/buttons_icons/pause_button.png");
             QIcon icon(start_pixmap);
             m_start_button->setIcon(icon);
@@ -118,12 +136,102 @@ void CSimulationPage::slot_change_simulation_state()
             QIcon icon(start_pixmap);
             m_start_button->setIcon(icon);
             m_start_button->setIconSize(QSize(60, 60));
+            m_simulation_is_paused = true;
         }
     }
 }
 
+void CSimulationPage::slot_restart_simulation()
+{
+    m_simulation_controller->restart_simulation();
+    m_simulation_is_paused = false;
+    m_simulation_was_started = false;
+}
+
 void CSimulationPage::slot_reconfigure_simulation()
 {
-    m_simulation_controller->set_simulation_configuration(
-        static_cast<CMainWindow*>(this->parent())->get_simulation_configuration_from_user());
+    SSimulationConfiguration config = static_cast<CMainWindow*>(this->parent())->get_simulation_configuration_from_user();
+    if(config.is_empty()){
+        return;
+    }
+
+    m_simulation_controller->set_simulation_configuration(config);
+    m_simulation_is_paused = false;
+    m_simulation_was_started = false;
+}
+
+void CSimulationPage::slot_request_traffic_light_configuration(STrafficLightsDuration traffic_lights_duration, bool automatic_offset_is_disabled, bool is_disabled)
+{
+    QDialog dialog;
+    QVBoxLayout dialog_layout;
+    CTrafficLightsDurationInputWidget traffic_lights_duration_widget(traffic_lights_duration);
+
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+                                     | QDialogButtonBox::Cancel);
+
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    dialog_layout.addWidget(&traffic_lights_duration_widget);
+
+    QSpinBox *offset_spin_box = nullptr;
+    if(automatic_offset_is_disabled){
+        QHBoxLayout offset_layout;
+        QLabel offset_label("Time offset");
+        offset_spin_box = new QSpinBox();
+        offset_spin_box->setMinimum(0);
+        offset_layout.addWidget(&offset_label);
+        offset_layout.addWidget(offset_spin_box);
+        dialog_layout.addLayout(&offset_layout);
+    }
+
+    QHBoxLayout light_disabled_layout;
+    QLabel light_disabled_label("Disable light");
+    QCheckBox *light_disabled_check_box = new QCheckBox();
+    light_disabled_check_box->setChecked(is_disabled);
+
+    light_disabled_layout.addWidget(&light_disabled_label);
+    light_disabled_layout.addWidget(light_disabled_check_box);
+    dialog_layout.addLayout(&light_disabled_layout);
+
+    dialog_layout.addWidget(buttonBox);
+    dialog.setLayout(&dialog_layout);
+
+    if(dialog.exec() == QDialog::DialogCode::Accepted){
+        int offset = -1;
+        if(automatic_offset_is_disabled){
+            offset = offset_spin_box->value();
+        }
+
+        m_simulation_controller->configure_traffic_light(traffic_lights_duration_widget.get_traffic_lights_duration_in_sec(),
+                                                         offset, light_disabled_check_box->isChecked());
+    }
+    else{
+        m_simulation_controller->configure_traffic_light(STrafficLightsDuration(),
+                                                         0, light_disabled_check_box->isChecked());
+    }
+}
+
+void CSimulationPage::slot_request_road_users_parameters(SRoadUsersBasicParameters parameters, ERoadUsers type)
+{
+    QDialog dialog;
+    QVBoxLayout dialog_layout;
+    CRoadUsersParametersInputWidget parameters_input_widget(parameters, type);
+
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+                                                       | QDialogButtonBox::Cancel);
+
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    dialog_layout.addWidget(&parameters_input_widget);
+    dialog_layout.addWidget(buttonBox);
+    dialog.setLayout(&dialog_layout);
+
+    if(dialog.exec() == QDialog::DialogCode::Accepted){
+        m_simulation_controller->configure_road_user(parameters_input_widget.get_road_users_parameters());
+    }
+    else{
+        m_simulation_controller->configure_road_user(SRoadUsersBasicParameters());
+    }
 }

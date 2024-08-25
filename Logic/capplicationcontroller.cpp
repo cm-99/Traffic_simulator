@@ -41,9 +41,16 @@ bool CApplicationController::process_simulation_start_request(QString map_file_p
         return false;
     }
 
+    m_map_creation_controller->fill_in_and_connect_lights(simulation_map);
+
     if(m_simulation_controller == nullptr){
         m_simulation_controller = new CSimulationController(this, simulation_map, simulation_configuration);
     }
+    else{
+        m_simulation_controller->set_model(simulation_map);
+        m_simulation_controller->set_simulation_configuration(simulation_configuration);
+    }
+
     m_main_window->show_simulation_page();
 
     return true;

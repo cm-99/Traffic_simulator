@@ -5,7 +5,7 @@
 #include <QVBoxLayout>
 
 #include "ctrafficlightsdurationinputwidget.h"
-#include "croadusersparametersinputwidget.h"
+#include "croadusersparametersrangeinputwidget.h"
 #include "Logic/csimulationcontroller.h"
 
 class CSimulationConfigurationDialog : public QDialog
@@ -15,8 +15,8 @@ public:
     static SSimulationConfiguration get_simulation_configuration();
 
 private:
-    CRoadUsersParametersInputWidget *m_cars_parameters_input_widget;
-    CRoadUsersParametersInputWidget *m_pedestrians_parameters_input_widget;
+    CRoadUsersParametersRangeInputWidget *m_cars_parameters_input_widget;
+    CRoadUsersParametersRangeInputWidget *m_pedestrians_parameters_input_widget;
     CTrafficLightsDurationInputWidget *m_traffic_lights_duration_input_widget;
 
     static SSimulationConfiguration m_simulation_configuration;

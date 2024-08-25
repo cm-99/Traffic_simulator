@@ -21,6 +21,7 @@ public:
     void add_stationary_map_element(CStationaryMapElement *new_stationary_map_element, QPointF pos);
 
     void erase_road_user(CRoadUser *road_user_to_remove);
+    void erase_road_users();
     void erase_item(QGraphicsItem *item);
     void erase_stationary_map_element(CStationaryMapElement *item);
 };

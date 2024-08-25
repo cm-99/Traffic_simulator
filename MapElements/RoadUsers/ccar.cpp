@@ -1,8 +1,8 @@
 #include "ccar.h"
 #include <random>
 
-CCar::CCar(QPixmap car_pixmap, QString description, EMovementPlane starting_movement_plane) :
-    CRoadUser(ERoadUsers::car, description, starting_movement_plane)
+CCar::CCar(QPixmap car_pixmap, QString description, EMovementPlane movement_plane, EHorizontalMoveDirection horizontal_move_direction, EVerticalMoveDirection vertical_move_direction) :
+    CRoadUser(ERoadUsers::car, description, movement_plane, horizontal_move_direction, vertical_move_direction)
 {
     setPixmap(car_pixmap);
 }
@@ -31,10 +31,10 @@ CRoadUser *CCar::create_car()
         car_pixmap = QPixmap(":/graphics/map_elements_graphics/road_users/cars/car_red.png");
     }
 
-    return new CCar(car_pixmap, "Car", EMovementPlane::horizontal);
+    return new CCar(car_pixmap, "Car", EMovementPlane::horizontal, EHorizontalMoveDirection::right);
 }
 
-void CCar::move()
+void CCar::move(CReadOnlyMap *map)
 {
 
 }

@@ -9,7 +9,7 @@ CRoadway::CRoadway(int carriageways_number, int lanes_number, ERoadSurfaceMarkin
 
 CStationaryMapElement *CRoadway::create_one_way_roadway()
 {
-    return new CRoadway(1, 1, ERoadSurfaceMarking::none, QPixmap(":graphics/map_elements_graphics/roadways/one_way_roadway.png"),
+    return new CRoadway(1, 1, ERoadSurfaceMarking::neither, QPixmap(":graphics/map_elements_graphics/roadways/one_way_roadway.png"),
                         "One way roadway", EMovementPlane::vertical, ":graphics/map_elements_graphics/roadways/one_way_roadway.png");
 }
 

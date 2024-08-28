@@ -27,7 +27,7 @@ CMapSelectionPage::CMapSelectionPage(CMainWindow *parent):
     });
 
     QDir directory(":graphics/map_selection");
-    QStringList map_graphics_list = directory.entryList(QStringList() << "*.jpg" << "*.JPG",QDir::Files);
+    QStringList map_graphics_list = directory.entryList(QStringList() << "*.png" << "*.PNG",QDir::Files);
 
     int map_graphics_list_size = map_graphics_list.size();
     for(int i = 0; i < map_graphics_list_size; i++){
@@ -38,7 +38,7 @@ CMapSelectionPage::CMapSelectionPage(CMainWindow *parent):
         auto map_button = new QPushButton(this);
         QPixmap pixmap(graphic_file_path);
         QSize pixmap_original_size = pixmap.rect().size();
-        pixmap = pixmap.scaled(QSize(pixmap_original_size.width()/4, pixmap_original_size.height()/4), Qt::KeepAspectRatio);
+        pixmap = pixmap.scaled(QSize(pixmap_original_size.width()/3, pixmap_original_size.height()/3), Qt::KeepAspectRatio);
 
         QIcon icon(pixmap);
         map_button->setIcon(icon);

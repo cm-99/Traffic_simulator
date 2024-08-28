@@ -19,7 +19,16 @@ public:
         m_map_element_type(map_element_type),
         m_description(description) {};
 
+    /**
+     * @brief To be implemented as serialization of the item to the string format. It should include all parameters needed to restore
+     * map element to previous state.
+     * @return
+     */
     virtual QString serialize_as_string()=0;
+    /**
+     * @brief To be implemented as type serialization to the string format.
+     * @return
+     */
     virtual QString serialize_type_as_string()=0;
 
     inline EStationaryMapElementType get_map_element_type() const {return m_map_element_type;}

@@ -33,10 +33,11 @@ class CWarningSign : public CTrafficSign
 public:
     SWarningSignType get_sign_type() {return m_sign_type;}
 
-    virtual QString serialize_as_string();
-    virtual QString serialize_type_as_string();
-    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
+    QString serialize_as_string() override;
+    QString serialize_type_as_string() override;
+    int get_traffic_sign_type_as_int() override;
 
+    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
     static CStationaryMapElement *create_give_way_sign();
     static CStationaryMapElement *create_equivalent_intersection_sign();
 

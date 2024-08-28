@@ -21,7 +21,9 @@ public:
     virtual QString serialize_as_string()=0;
     virtual QString serialize_type_as_string()=0;
 
+    virtual int get_traffic_sign_type_as_int()=0;
     inline ETrafficSignCategory get_traffic_sign_category() const {return m_traffic_sign_category;}
+
 private:
     ETrafficSignCategory m_traffic_sign_category;
 };

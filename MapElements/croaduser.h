@@ -29,6 +29,9 @@ struct SRoadUsersBasicParameters{
     double m_max_acceleration_value;
     double m_max_deceleration_value;
     double m_max_speed;
+    /**
+     * @brief How likely the road user is to break traffic laws in the range from 0 to 100.
+     */
     double m_chance_of_breaking_law;
     bool m_is_empty{true};
 
@@ -177,9 +180,14 @@ public:
         m_current_movement_plane(movement_plane)
         {setZValue(4);}
     /**
-     * @brief move is a main method for simulation purposes - it should cause the movement of a given object according to traffic laws.
+     * @brief Move is a main method for simulation purposes - it should cause the movement of a CRoadUser object according to traffic laws
+     * and specific type.
      */
     virtual void move(CReadOnlyMap *map) = 0;
+    /**
+     * @brief To be implemented as a way to restore object to it's default state.
+     */
+    virtual void reset_state() = 0;
 
     void set_basic_parameters(SRoadUsersBasicParameters parameters);
     inline void set_current_movement_plane(EMovementPlane mp) {m_current_movement_plane = mp;}
@@ -190,27 +198,29 @@ public:
     inline const SRoadUsersBasicParameters& get_basic_parameters() const {return m_road_users_parameters;}
     inline ERoadUsers get_road_user_type() const {return m_road_user_type;}
     inline QString get_description() const {return m_description;}
+    inline double get_current_speed() const {return m_current_speed;}
     inline EMovementPlane get_current_movement_plane() const {return m_current_movement_plane;}
     inline EHorizontalMoveDirection get_horizontal_move_direction() const {return m_horizontal_move_direction;}
     inline EVerticalMoveDirection get_vertical_move_direction() const {return m_vertical_move_direction;}
     inline bool has_designated_destination() const {return m_has_designated_destination;}
     inline QPointF get_destination() const {return m_destination;}
     inline bool is_rotable() const {return m_is_rotable;}
+    inline bool is_out_of_bounds() const {return m_is_out_of_bounds;}
 
 protected:
     SRoadUsersBasicParameters m_road_users_parameters;
     SRoadUsersBasicParameters m_road_users_parameters_adjusted_to_step;
-    CReadOnlyMap *m_map;
+    CReadOnlyMap *m_map{nullptr};
     QSize m_default_cell_size;
-    /**
-     * @brief m_designated_destination is to be used when implementing movement to designated point chosen by the user.
-     */
+
     QPointF m_destination;
     std::vector<QPoint> m_path_to_destination;
     bool m_has_designated_destination{false};
+    int m_current_path_point{0};
 
     bool m_is_involved_in_accident{false};
     bool m_is_rotable{true};
+    bool m_is_out_of_bounds{false};
 
     ERoadUsers m_road_user_type;
     QString m_description;
@@ -221,9 +231,39 @@ protected:
 
     double m_current_speed{0};
     std::pair<double, double> m_speed_vector{0, 0};
+
+    /**
+     * @brief Updates speed vector based on current road user's speed and rotation.
+     */
     void update_speed_vector();
+    /**
+     * @brief Sets rotation of the object to the value of argument degrees. Oirign point of transformation is center.
+     * @param degrees
+     */
     void set_rotation_by_center(double degrees);
+    /**
+     * @brief Transforms provided grid point assumed to be used by the path finding algorithm to the map representation.
+     * @param grid_point
+     * @return
+     */
     QPoint grid_point_to_map_point(QPoint grid_point);
+    /**
+     * @brief Transforms provided map point to the representation used by the path finding algorithm.
+     * @param map_point
+     * @return
+     */
+    QPoint map_point_to_grid_point(QPoint map_point);
+    /**
+     * @brief Checks if road user is out of map's bouding rectangle. Sets the parameters m_is_out_of_bounds to true in such situation.
+     * @param map_model
+     * @return returns true if user is out of bounds; otherwise returns false.
+     */
+    bool is_out_of_bounds(CReadOnlyMap *map_model);
+    /**
+     * @brief Changes current rotation by degrees value. Origin point of transformation is center.
+     * @param degrees
+     */
+    void change_rotation_by_center(double degrees);
 };
 
 #endif // CROADUSER_H

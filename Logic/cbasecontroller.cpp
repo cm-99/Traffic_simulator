@@ -14,7 +14,9 @@ void CBaseController::set_model(CEditableMap *map_model)
 {
     auto temp = m_map_model;
     m_map_model = map_model;
+
     m_map_view->set_model(m_map_model);
+    m_map_view->resetTransform();
 
     if(temp != nullptr){
         temp->deleteLater();

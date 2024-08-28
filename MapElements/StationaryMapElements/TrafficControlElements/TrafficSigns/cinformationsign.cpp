@@ -59,6 +59,11 @@ QString CInformationSign::serialize_type_as_string()
            QString::number(ETrafficSignCategory::information_sign);
 }
 
+int CInformationSign::get_traffic_sign_type_as_int()
+{
+    return m_sign_type.m_type;
+}
+
 CStationaryMapElement *CInformationSign::deserialize_from_string(QString item_serialized_to_string)
 {
     QStringList item_attributes_list = item_serialized_to_string.split(",");

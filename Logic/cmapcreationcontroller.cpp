@@ -150,6 +150,20 @@ void CMapCreationController::fill_in_and_connect_lights(CEditableMap *map_model)
     }
 }
 
+void CMapCreationController::set_crossings_valid_sides(CEditableMap *map_model)
+{
+    auto stationary_map_elements = map_model->get_stationary_map_elements();
+
+    for(auto element : *stationary_map_elements){
+        auto crossing = dynamic_cast<CCrossing*>(element);
+
+        if(crossing){
+            QVector<int> crossing_valid_sides = get_crossing_valid_sides(crossing, map_model);
+            crossing->set_crossing_valid_sides(crossing_valid_sides);
+        }
+    }
+}
+
 
 void CMapCreationController::add_guide_grid()
 {
@@ -388,6 +402,12 @@ void CMapCreationController::process_simulation_start_request()
 
     QFile temp_file(temp_map_file_path);
     temp_file.remove();
+}
+
+void CMapCreationController::prepare_map_for_simulation(CEditableMap *map_model)
+{
+    fill_in_and_connect_lights(map_model);
+    set_crossings_valid_sides(map_model);
 }
 
 EMapElementPositionValidity CMapCreationController::get_road_element_position_validity_in_relation_to_foundations(CRoadElement *r_element, const QList<QGraphicsItem *> &colliding_items)
@@ -1504,6 +1524,42 @@ QVector<int> CMapCreationController::get_crossing_valid_sides(CCrossing *cr)
     side_cell_pos = QPoint(cr->pos().x() -  cell_size.width()/2 + x_offset, cr->pos().y() + cr_size.height()/2 + y_offset);
     if(dynamic_cast<CRoadway*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform())) ||
         dynamic_cast<CPedestrianCrossing*>(m_map_model->itemAt(side_cell_pos, m_map_view->transform()))){
+        valid_sides.append(3);
+    }
+
+    return valid_sides;
+}
+
+QVector<int> CMapCreationController::get_crossing_valid_sides(CCrossing *cr, CEditableMap *map_model)
+{
+    QVector<int> valid_sides;
+    int x_offset = 2;
+    int y_offset = 2;
+
+    auto cr_size = cr->boundingRect().size();
+    auto cell_size = CReadOnlyMap::get_default_cell_size();
+
+    QPoint side_cell_pos = QPoint(cr->pos().x() + cr_size.width()/2 + x_offset, cr->pos().y() - cell_size.height()/2 + y_offset);
+    if(dynamic_cast<CRoadway*>(map_model->itemAt(side_cell_pos, map_model->views().constFirst()->transform())) ||
+        dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(side_cell_pos, map_model->views().constFirst()->transform()))){
+        valid_sides.append(0);
+    }
+
+    side_cell_pos = QPoint(cr->pos().x() + cr_size.width() + cell_size.width()/2 + x_offset, cr->pos().y() + cr_size.height()/2 + y_offset);
+    if(dynamic_cast<CRoadway*>(map_model->itemAt(side_cell_pos, map_model->views().constFirst()->transform())) ||
+        dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(side_cell_pos, map_model->views().constFirst()->transform()))){
+        valid_sides.append(1);
+    }
+
+    side_cell_pos = QPoint(cr->pos().x() + cr_size.width()/2 + x_offset, cr->pos().y() + cr_size.height() + cell_size.height()/2 + y_offset);
+    if(dynamic_cast<CRoadway*>(map_model->itemAt(side_cell_pos, map_model->views().constFirst()->transform())) ||
+        dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(side_cell_pos, map_model->views().constFirst()->transform()))){
+        valid_sides.append(2);
+    }
+
+    side_cell_pos = QPoint(cr->pos().x() -  cell_size.width()/2 + x_offset, cr->pos().y() + cr_size.height()/2 + y_offset);
+    if(dynamic_cast<CRoadway*>(map_model->itemAt(side_cell_pos, map_model->views().constFirst()->transform())) ||
+        dynamic_cast<CPedestrianCrossing*>(map_model->itemAt(side_cell_pos, map_model->views().constFirst()->transform()))){
         valid_sides.append(3);
     }
 

@@ -6,6 +6,7 @@
 #include "MapElements/StationaryMapElements/RoadElements/cpavement.h"
 #include "MapElements/StationaryMapElements/RoadElements/croadwayelement.h"
 #include <random>
+#include <QGraphicsView>
 
 CPedestrian::CPedestrian(QVector<QPixmap> pedestrian_states_pixmaps, QString description, EMovementPlane movement_plane,
                          EHorizontalMoveDirection horizontal_move_direction, EVerticalMoveDirection vertical_move_direction) :
@@ -25,10 +26,17 @@ CPedestrian::CPedestrian(QVector<QPixmap> pedestrian_states_pixmaps, QString des
 
     m_movement_states_to_destination_mapped_to_func[EPedestrianMovementStatesToDestination::walking_to_destination] =
         &CPedestrian::take_next_step_to_destination;
+    m_movement_states_to_destination_mapped_to_func[EPedestrianMovementStatesToDestination::crossing_to_destination] =
+        &CPedestrian::cross_to_destination;
+    m_movement_states_to_destination_mapped_to_func[EPedestrianMovementStatesToDestination::waiting_to_cross] =
+        &CPedestrian::wait_to_cross;
+    m_movement_states_to_destination_mapped_to_func[EPedestrianMovementStatesToDestination::waiting_for_lights] =
+        &CPedestrian::wait_for_lights;
 }
 
 void CPedestrian::set_destination(QPointF destination, std::vector<QPoint> path)
 {
+    m_current_path_point = 0;
     m_has_designated_destination = true;
     m_destination = destination;
     m_path_to_destination = path;
@@ -44,7 +52,7 @@ CRoadUser *CPedestrian::create_pedestrian()
                            "Pedestrian", EMovementPlane::horizontal, EHorizontalMoveDirection::right);
 }
 
-double CPedestrian::get_possible_acceleration()
+double CPedestrian::calculate_possible_acceleration()
 {
     double speed_reserve = m_road_users_parameters_adjusted_to_step.m_max_speed - m_current_speed;
     double acceleration_possible = 0;
@@ -65,7 +73,7 @@ double CPedestrian::get_possible_acceleration()
 
 void CPedestrian::take_next_step()
 {
-    double acceleration_possible = get_possible_acceleration();
+    double acceleration_possible = calculate_possible_acceleration();
 
     m_current_speed = m_current_speed + acceleration_possible;
     update_speed_vector();
@@ -238,7 +246,7 @@ void CPedestrian::take_next_step()
 
     for(auto item : items_at_lights_pos){
         auto tl = dynamic_cast<CTrafficLight*>(item);
-        if(tl){
+        if(tl && tl->is_active()){
             traffic_light = tl;
             is_crossing_with_lights = true;
             break;
@@ -277,12 +285,206 @@ void CPedestrian::take_next_step()
 
 void CPedestrian::move_to_destination()
 {
+    auto it = m_movement_states_to_destination_mapped_to_func.find(m_current_movement_state_to_destination);
+    if (it != m_movement_states_to_destination_mapped_to_func.end()) {
+        (this->*(it.value()))();
+    }
 
+    if(uint(m_current_path_point) == m_path_to_destination.size()){
+        destination_reached();
+    }
 }
 
 void CPedestrian::take_next_step_to_destination()
 {
+    QPoint current_point = grid_point_to_map_point(m_path_to_destination[m_current_path_point]);
+    double delta_x = current_point.x() - this->pos().x();
+    double delta_y = this->pos().y() - current_point.y();
+    double angle_in_degrees = atan2(delta_y, delta_x) * 180/M_PI;
+    set_rotation_by_center(-angle_in_degrees);
 
+    double acceleration_possible = calculate_possible_acceleration();
+    m_current_speed = m_current_speed + acceleration_possible;
+    update_speed_vector();
+
+    QPointF current_pos = this->pos();
+    QPointF new_possible_pos(this->pos().x() + m_speed_vector.first, this->pos().y() + m_speed_vector.second);
+    this->setPos(new_possible_pos);
+
+    auto colliding_items = m_map->collidingItems(this);
+
+    bool pedestrian_crossing_collision = false;
+
+    for(auto item : colliding_items){
+        auto pedestrian_crossing = dynamic_cast<CPedestrianCrossing*>(item);
+
+        if(pedestrian_crossing){
+            this->setPos(current_pos);
+            m_p_crossing = pedestrian_crossing;
+            pedestrian_crossing_collision = true;
+        }
+    }
+
+    if(pedestrian_crossing_collision){
+        bool is_crossing_with_lights = false;
+
+        int x_offset = 5;
+        int y_offset = 5;
+
+        EMovementPlane pc_movement_plane = m_p_crossing->get_movement_plane();
+        CPavement *pavement = nullptr;
+
+        //Looking for the lights on the RIGHT SIDE OF THE ROAD PEDESTRIAN IS GOING TO CROSS
+        if(pc_movement_plane == EMovementPlane::horizontal){
+            bool is_pavement = false;
+            QPoint pavement_center_pos = QPoint(m_p_crossing->pos().x() - m_default_cell_size.width()/2,
+                                                m_p_crossing->pos().y() + m_default_cell_size.height()/2);
+
+            while(!is_pavement){
+                auto items_at_pavement_pos = m_map->items(pavement_center_pos);
+
+                for(auto item : items_at_pavement_pos){
+                    auto pavement_item = dynamic_cast<CPavement*>(item);
+                    if(pavement_item){
+                        pavement = pavement_item;
+                        is_pavement = true;
+                        break;
+                    }
+                }
+
+                if(!is_pavement){
+                    pavement_center_pos = QPoint(pavement_center_pos.x() - m_default_cell_size.width(),
+                                                 pavement_center_pos.y());
+                }
+            }
+        }
+        else{
+            bool is_pavement = false;
+            QPoint pavement_center_pos = QPoint(m_p_crossing->pos().x() + m_default_cell_size.width()/2,
+                                                m_p_crossing->pos().y() + m_default_cell_size.height()*1.5);
+
+            while(!is_pavement){
+                auto items_at_pavement_pos = m_map->items(pavement_center_pos);
+
+                for(auto item : items_at_pavement_pos){
+                    auto pavement_item = dynamic_cast<CPavement*>(item);
+                    if(pavement_item){
+                        pavement = pavement_item;
+                        is_pavement = true;
+                        break;
+                    }
+                }
+
+                if(!is_pavement){
+                    pavement_center_pos = QPoint(pavement_center_pos.x(),
+                                                 pavement_center_pos.y() + m_default_cell_size.height());
+                }
+            }
+        }
+
+        QPoint possible_lights_pos = QPoint(pavement->pos().x() + x_offset, pavement->pos().y() + y_offset);
+
+        auto items_at_lights_pos = m_map->items(possible_lights_pos);
+        CTrafficLight *traffic_light = nullptr;
+
+        for(auto item : items_at_lights_pos){
+            auto tl = dynamic_cast<CTrafficLight*>(item);
+            if(tl){
+                traffic_light = tl;
+                is_crossing_with_lights = true;
+                break;
+            }
+        }
+
+        bool crossing_possible = false;
+
+        if(is_crossing_with_lights){
+            crossing_possible = check_if_crossing_pedestrian_crossing_with_lights_is_possible(m_p_crossing, traffic_light);
+
+            if(crossing_possible){
+                m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::crossing_to_destination;
+            }
+            else{
+                m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::waiting_for_lights;
+                m_current_speed = 0;
+            }
+
+            m_crossing_light = traffic_light;
+        }
+        else{
+            crossing_possible = check_if_crossing_pedestrian_crossing_without_lights_is_possible(m_p_crossing);
+            if(crossing_possible){
+                m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::crossing_to_destination;
+            }
+            else{
+                m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::waiting_to_cross;
+                m_current_speed = 0;
+            }
+        }
+    }
+
+    if(abs(current_point.x() - new_possible_pos.x()) < 10 && abs(current_point.y() - new_possible_pos.y()) < 10){
+        m_current_path_point++;
+    }
+}
+
+void CPedestrian::wait_for_lights()
+{
+    bool is_possible = check_if_crossing_pedestrian_crossing_with_lights_is_possible(m_p_crossing, m_crossing_light);
+    if(is_possible){
+        m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::crossing_to_destination;
+    }
+}
+
+void CPedestrian::wait_to_cross()
+{
+    bool is_possible = check_if_crossing_pedestrian_crossing_without_lights_is_possible(m_p_crossing);
+    if(is_possible){
+        m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::crossing_to_destination;
+    }
+}
+
+void CPedestrian::cross_to_destination()
+{
+    QPoint current_point = grid_point_to_map_point(m_path_to_destination[m_current_path_point]);
+    double delta_x = current_point.x() - this->pos().x();
+    double delta_y = this->pos().y() - current_point.y();
+    double angle_in_degrees = atan2(delta_y, delta_x) * 180/M_PI;
+    set_rotation_by_center(-angle_in_degrees);
+
+    double acceleration_possible = calculate_possible_acceleration();
+    m_current_speed = m_current_speed + acceleration_possible;
+    update_speed_vector();
+
+    QPointF new_possible_pos(this->pos().x() + m_speed_vector.first, this->pos().y() + m_speed_vector.second);
+    this->setPos(new_possible_pos);
+    bool got_out_of_p_crossing = true;
+
+    auto items_at_pos = m_map->items(new_possible_pos);
+    for(auto item : items_at_pos){ //Get out of pedestrian crossing, pavement is assured by validation
+        auto p_crossing = dynamic_cast<CPedestrianCrossing*>(item);
+
+        if(p_crossing){
+            got_out_of_p_crossing = false;
+            break;
+        }
+    }
+
+    if(got_out_of_p_crossing){
+        m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::walking_to_destination;
+    }
+
+    if(abs(current_point.x() - new_possible_pos.x()) < 10 && abs(current_point.y() - new_possible_pos.y()) < 10){
+        m_current_path_point++;
+    }
+}
+
+void CPedestrian::destination_reached()
+{
+    m_current_path_point = 0;
+    m_has_designated_destination = false;
+
+    m_current_movement_state = EPedestrianMovementStates::walking;
 }
 
 void CPedestrian::cross_pedestrian_crossing()
@@ -382,7 +584,7 @@ void CPedestrian::cross_pedestrian_crossing()
         }
     }
 
-    double acceleration_possible = get_possible_acceleration();
+    double acceleration_possible = calculate_possible_acceleration();
     m_current_speed = m_current_speed + acceleration_possible;
     update_speed_vector();
 
@@ -410,16 +612,22 @@ void CPedestrian::cross_pedestrian_crossing()
 
 void CPedestrian::wait_to_cross_pedestrian_crossing_with_lights()
 {
+    m_is_waiting_to_pass = true;
+
     bool is_possible = check_if_crossing_pedestrian_crossing_with_lights_is_possible(m_p_crossing, m_crossing_light);
     if(is_possible){
+        m_is_waiting_to_pass = false;
         m_current_movement_state = EPedestrianMovementStates::crossing_pedestrian_crossing;
     }
 }
 
 void CPedestrian::wait_to_cross_pedestrian_crossing_without_lights()
 {
+    m_is_waiting_to_pass = true;
+
     bool is_possible = check_if_crossing_pedestrian_crossing_without_lights_is_possible(m_p_crossing);
     if(is_possible){
+        m_is_waiting_to_pass = false;
         m_current_movement_state = EPedestrianMovementStates::crossing_pedestrian_crossing;
     }
 }
@@ -430,6 +638,90 @@ bool CPedestrian::check_if_crossing_pedestrian_crossing_with_lights_is_possible(
         return true;
     }
     else{
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, 100);
+        int sanity_value = dist(gen);
+
+        if(sanity_value >= m_road_users_parameters.m_chance_of_breaking_law){
+            return false;
+        }
+
+        //If he is going to break the law, at least have survival instinct
+        if(p_crossing->get_movement_plane() == EMovementPlane::horizontal){
+            QPoint crossing_center_pos = QPoint(p_crossing->pos().x() + m_default_cell_size.width()/2,
+                                                p_crossing->pos().y() + m_default_cell_size.height()/2);
+            QPoint upper_cell_center_pos = QPoint(crossing_center_pos.x(), crossing_center_pos.y() - m_default_cell_size.height()/2);
+            QPoint lower_cell_center_pos = QPoint(crossing_center_pos.x(), crossing_center_pos.y() - m_default_cell_size.height()/2);
+
+            auto center_item = m_map->itemAt(crossing_center_pos, m_map->views().constFirst()->transform());
+            auto upper_item = m_map->itemAt(upper_cell_center_pos, m_map->views().constFirst()->transform());
+            auto lower_item = m_map->itemAt(lower_cell_center_pos, m_map->views().constFirst()->transform());
+
+            auto center_car = dynamic_cast<CCar*>(center_item);
+            auto upper_car = dynamic_cast<CCar*>(upper_item);
+            auto lower_car = dynamic_cast<CCar*>(lower_item);
+
+            //Check for crossing blocked
+            if(center_car){
+                return false;
+            }
+
+            //Check for immediate danger
+            if(upper_car){
+                if(!upper_car->is_waiting()){
+                    return false;
+                }
+            }
+
+            if(lower_car){
+                if(!lower_car->is_waiting()){
+                    return false;
+                }
+            }
+
+            if(sanity_value < m_road_users_parameters.m_chance_of_breaking_law){
+                return true;
+            }
+        }
+        else{
+            QPoint crossing_center_pos = QPoint(p_crossing->pos().x() + m_default_cell_size.width()/2,
+                                                p_crossing->pos().y() + m_default_cell_size.height()/2);
+            QPoint left_cell_center_pos = QPoint(crossing_center_pos.x() - m_default_cell_size.width()/2, crossing_center_pos.y());
+            QPoint right_cell_center_pos = QPoint(crossing_center_pos.x() + - m_default_cell_size.width()/2, crossing_center_pos.y());
+
+            auto center_item = m_map->itemAt(crossing_center_pos, m_map->views().constFirst()->transform());
+            auto left_item = m_map->itemAt(left_cell_center_pos, m_map->views().constFirst()->transform());
+            auto right_item = m_map->itemAt(right_cell_center_pos, m_map->views().constFirst()->transform());
+
+            auto center_car = dynamic_cast<CCar*>(center_item);
+            auto left_car = dynamic_cast<CCar*>(left_item);
+            auto right_car = dynamic_cast<CCar*>(right_item);
+
+            //Check for crossing blocked
+            if(center_car){
+                return false;
+            }
+
+            //Check for immediate danger
+            if(left_car){
+                if(!left_car->is_waiting()){
+                    return false;
+                }
+            }
+
+            if(right_car){
+                if(!right_car->is_waiting()){
+                    return false;
+                }
+            }
+
+            //If no immediate danger was spotted, check if pedestrian is crazy enough to just cross
+
+            if(sanity_value < m_road_users_parameters.m_chance_of_breaking_law){
+                return true;
+            }
+        }
         return false;
     }
 }
@@ -439,52 +731,138 @@ bool CPedestrian::check_if_crossing_pedestrian_crossing_without_lights_is_possib
     if(p_crossing->get_movement_plane() == EMovementPlane::horizontal){
         QPoint crossing_center_pos = QPoint(p_crossing->pos().x() + m_default_cell_size.width()/2,
                                             p_crossing->pos().y() + m_default_cell_size.height()/2);
+        QPoint upper_cell_center_pos = QPoint(crossing_center_pos.x(), crossing_center_pos.y() - m_default_cell_size.height()/2);
+        QPoint lower_cell_center_pos = QPoint(crossing_center_pos.x(), crossing_center_pos.y() - m_default_cell_size.height()/2);
+
+        auto center_item = m_map->itemAt(crossing_center_pos, m_map->views().constFirst()->transform());
+        auto upper_item = m_map->itemAt(upper_cell_center_pos, m_map->views().constFirst()->transform());
+        auto lower_item = m_map->itemAt(lower_cell_center_pos, m_map->views().constFirst()->transform());
+
+        auto center_car = dynamic_cast<CCar*>(center_item);
+        auto upper_car = dynamic_cast<CCar*>(upper_item);
+        auto lower_car = dynamic_cast<CCar*>(lower_item);
+
+        //Check for crossing blocked
+        if(center_car){
+            return false;
+        }
+
+        //Check for immediate danger
+        if(upper_car){
+            if(!upper_car->is_waiting()){
+                return false;
+            }
+        }
+
+        if(lower_car){
+            if(!lower_car->is_waiting()){
+                return false;
+            }
+        }
+
+        if(upper_car && lower_car){
+            if(upper_car->is_waiting() && lower_car->is_waiting()){
+                return true;
+            }
+        }
+
+        //If no immediate danger was spotted, check if pedestrian is crazy enough to just cross
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, 100);
+        int sanity_value = dist(gen);
+
+        if(sanity_value < m_road_users_parameters.m_chance_of_breaking_law){
+            return true;
+        }
+
+        //If no immediate danger and pedestrian is mentally stable, look further
         QGraphicsLineItem *collision_line = new QGraphicsLineItem(crossing_center_pos.x(), crossing_center_pos.y() + 300,
                                         crossing_center_pos.x(), crossing_center_pos.y() - 300);
         m_map->addItem(collision_line);
         auto items_on_collision_line = m_map->collidingItems(collision_line);
+        m_map->removeItem(collision_line);
+        delete collision_line;
 
         for(auto item : items_on_collision_line){
             auto car = dynamic_cast<CCar*>(item);
             if(car){
-                if(car->get_is_waiting()){
+                if(car->is_waiting() || car->is_braking()){
                     continue;
                 }
                 else{
-                    m_map->removeItem(collision_line);
-                    delete collision_line;
                     return false;
                 }
             }
         }
-
-        m_map->removeItem(collision_line);
-        delete collision_line;
     }
     else{
         QPoint crossing_center_pos = QPoint(p_crossing->pos().x() + m_default_cell_size.width()/2,
                                             p_crossing->pos().y() + m_default_cell_size.height()/2);
+        QPoint left_cell_center_pos = QPoint(crossing_center_pos.x() - m_default_cell_size.width()/2, crossing_center_pos.y());
+        QPoint right_cell_center_pos = QPoint(crossing_center_pos.x() + - m_default_cell_size.width()/2, crossing_center_pos.y());
+
+        auto center_item = m_map->itemAt(crossing_center_pos, m_map->views().constFirst()->transform());
+        auto left_item = m_map->itemAt(left_cell_center_pos, m_map->views().constFirst()->transform());
+        auto right_item = m_map->itemAt(right_cell_center_pos, m_map->views().constFirst()->transform());
+
+        auto center_car = dynamic_cast<CCar*>(center_item);
+        auto left_car = dynamic_cast<CCar*>(left_item);
+        auto right_car = dynamic_cast<CCar*>(right_item);
+
+        //Check for crossing blocked
+        if(center_car){
+            return false;
+        }
+
+        //Check for immediate danger
+        if(left_car){
+            if(!left_car->is_waiting()){
+                return false;
+            }
+        }
+
+        if(right_car){
+            if(!right_car->is_waiting()){
+                return false;
+            }
+        }
+
+        if(left_car && right_car){
+            if(left_car->is_waiting() && right_car->is_waiting()){
+                return true;
+            }
+        }
+
+        //If no immediate danger was spotted, check if pedestrian is crazy enough to just cross
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, 100);
+        int sanity_value = dist(gen);
+
+        if(sanity_value < m_road_users_parameters.m_chance_of_breaking_law){
+            return true;
+        }
+
+        //If no immediate danger and pedestrian is mentally stable, look some more
         QGraphicsLineItem *collision_line = new QGraphicsLineItem(crossing_center_pos.x(), crossing_center_pos.y() + 300,
                                                                   crossing_center_pos.x(), crossing_center_pos.y() - 300);
         m_map->addItem(collision_line);
         auto items_on_collision_line = m_map->collidingItems(collision_line);
+        m_map->removeItem(collision_line);
+        delete collision_line;
 
         for(auto item : items_on_collision_line){
             auto car = dynamic_cast<CCar*>(item);
             if(car){
-                if(car->get_is_waiting()){
+                if(car->is_waiting() || car->is_braking()){
                     continue;
                 }
                 else{
-                    m_map->removeItem(collision_line);
-                    delete collision_line;
                     return false;
                 }
             }
         }
-
-        m_map->removeItem(collision_line);
-        delete collision_line;
     }
 
     return true;
@@ -514,5 +892,26 @@ void CPedestrian::move(CReadOnlyMap *map)
         m_current_step_state = 0;
         setPixmap(m_pedestrian_states_pixmaps[m_current_step_state]);
     }
+
+    if(is_out_of_bounds(m_map)){
+        this->hide();
+    }
+}
+
+void CPedestrian::reset_state()
+{
+    m_has_designated_destination = false;
+    m_current_step_state = 0;
+    m_current_movement_state = EPedestrianMovementStates::walking;
+    m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::walking_to_destination;
+
+    m_is_waiting_to_pass = false;
+    is_omitting_p_crossing = false;
+    p_crossing_omission_steps = 0;
+    m_current_speed = 0;
+    update_speed_vector();
+
+    m_crossing_light = nullptr;
+    m_p_crossing = nullptr;
 }
 

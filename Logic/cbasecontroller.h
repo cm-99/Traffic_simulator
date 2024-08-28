@@ -24,6 +24,11 @@ public:
     virtual ~CBaseController() {};
 
     CBaseView *get_view() const {return m_map_view;}
+    /**
+     * @brief Sets (or changes if it was already set) map model to be controlled. Relays map model change to corresponding view.
+     * Takes control over the provided map model.
+     * @param map_model
+     */
     void set_model(CEditableMap *map_model);
 
 protected:

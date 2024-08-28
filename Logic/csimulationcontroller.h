@@ -78,21 +78,59 @@ public:
 
     void set_user_to_place_creation_func(CRoadUser *(*creation_func)(void));
 
+    /**
+     * @brief Processes wheel event. If road user is being placed and it is rotable, it will be rotated according to the wheel event.
+     * Otherwise relays the event to corresponding view.
+     * @param event
+     * @return returns true if event was handled; otherwise returns false
+     */
     bool process_wheel_event(QWheelEvent *event);
+    /**
+     * @brief Processes mouse move event. If the road user is being placed, it follows the cursor.
+     * @param event
+     */
     void process_mouse_move_event(QMouseEvent *event);
+    /**
+     * @brief Processes mouse press event. Depending on the button pressed, modifiers and simulation state:
+     * - (road user is being placed + left button) - places the road user (if position is valid)
+     * - (road user is NOT being placed + simulation is paused + left button) - picks up the road user at mouse position
+     * - (road user is being placed + right button) - removes the road user being placed
+     *
+     * - (simulation is paused + ctrl modifier + left button) - opens configuration dialog for road user at mouse position
+     * - (road user is not being placed + shift modifier + left button) - allows destination change for road user at mouse position
+     * - (simulation is NOT paused + left button) - opens configuration dialog for road user at mouse position
+     * @param event
+     */
     void process_mouse_press_event(QMouseEvent *event);
 
     void start_simulation();
     void pause_simulation();
     void resume_simulation();
+    /**
+     * @brief Restars simulation. If automatic road user's placement is enabled, they will be randomly placed again.
+     * Road user's parameters are generated anew; traffic light's offsets are generated anew.
+     */
     void restart_simulation();
 
     bool simulation_is_ready() {return m_simulation_is_ready;}
 
-    //TODO: recalculate everything with new config
+    /**
+     * @brief Restarts simulation with new configuration.
+     * @param simulation_configuration
+     */
     void set_simulation_configuration(SSimulationConfiguration simulation_configuration);
     void set_simulation_speed(uint simulation_speed);
+    /**
+     * @brief Configures traffic lights which was previously selected by the user using provided parameters.
+     * @param traffic_lights_duration
+     * @param offset
+     * @param is_disabled
+     */
     void configure_traffic_light(STrafficLightsDuration traffic_lights_duration, int offset, bool is_disabled);
+    /**
+     * @brief Configures road user previously selected by the user with provided parameters.
+     * @param parameters
+     */
     void configure_road_user(SRoadUsersBasicParameters parameters);
 
 private:
@@ -100,6 +138,7 @@ private:
     SSimulationConfiguration m_simulation_configuration;
     QTimer m_simulation_timer;
     int m_simulation_step_interval{100};
+    bool m_simulation_was_started{false};
     bool m_simulation_is_paused{true};
     bool m_simulation_is_ready{false};
     uint m_simulation_speed{1};

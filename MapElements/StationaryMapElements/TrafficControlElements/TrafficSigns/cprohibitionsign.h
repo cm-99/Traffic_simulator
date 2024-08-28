@@ -34,10 +34,11 @@ public:
     SProhibitionSignType get_sign_type() {return m_sign_type;}
     int get_speed_limit() const {return m_speed_limit;}
 
-    virtual QString serialize_as_string();
-    virtual QString serialize_type_as_string();
-    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
+    QString serialize_as_string() override;
+    QString serialize_type_as_string() override;
+    int get_traffic_sign_type_as_int() override;
 
+    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
     static CStationaryMapElement *create_no_entry_sign();
     static CStationaryMapElement *create_stop_sign();
     static CStationaryMapElement *create_left_turn_prohibited_sign();

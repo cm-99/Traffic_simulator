@@ -77,6 +77,12 @@ QString CProhibitionSign::serialize_type_as_string()
            QString::number(ETrafficSignCategory::prohibition_sign);
 }
 
+int CProhibitionSign::get_traffic_sign_type_as_int()
+{
+    return m_sign_type.m_type;
+}
+
+
 CStationaryMapElement *CProhibitionSign::deserialize_from_string(QString item_serialized_to_string)
 {
     QStringList item_attributes_list = item_serialized_to_string.split(",");
@@ -89,7 +95,7 @@ CStationaryMapElement *CProhibitionSign::deserialize_from_string(QString item_se
                                                     item_attributes_list[2].toInt(),
                                                     item_attributes_list[0]);
 
-    QPointF pos(item_attributes_list[2].toInt(), item_attributes_list[3].toInt());
+    QPointF pos(item_attributes_list[3].toInt(), item_attributes_list[4].toInt());
     item->setPos(pos);
 
     return item;

@@ -5,7 +5,6 @@
 
 /**
  * @brief The CPedestrianCrossing class is a graphical representation of pedestrian crossing.
- * Pedestrian crossing allows pedestrians to cross the roadway and must be treated separately from normal crossings.
  */
 class CPedestrianCrossing : public CRoadElement
 {

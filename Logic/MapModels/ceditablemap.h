@@ -13,16 +13,51 @@ class CEditableMap : public CReadOnlyMap
 public:
     CEditableMap(int scene_width, int scene_height);
 
+    /**
+     * @brief Fills map cells with graphical items of CFiller type.
+     * If more representations of filler will be added it should randomly change those.
+     */
     void fill_map();
+    /**
+     * @brief Adds map boundaries in the form of graphical lines.
+     */
     void add_map_boundaries();
+    /**
+     * @brief Removes all items of type CStationaryMapElement and deletes them.
+     */
     void clear_stationary_map_elements();
-
+    /**
+     * @brief Adds road used at the specified position.
+     * @param new_road_user - road user to be added
+     * @param pos - position of the road user
+     */
     void add_road_user(CRoadUser *new_road_user, QPointF pos);
+    /**
+     * @brief Adds stationary map element at the specified positions. Checks if the element is of the CTrafficLight type,
+     * if it is, adds it to the corresponding list.
+     * @param new_stationary_map_element - map element to be added
+     * @param pos - position of the new element
+     */
     void add_stationary_map_element(CStationaryMapElement *new_stationary_map_element, QPointF pos);
-
+    /**
+     * @brief Removes road user from the map and deletes the object.
+     * @param road_user_to_remove - road user to be erased
+     */
     void erase_road_user(CRoadUser *road_user_to_remove);
+    /**
+     * @brief Removes from the map and deletes all objects of CRoadUser type.
+     */
     void erase_road_users();
+    /**
+     * Removes item from the map and deletes it.
+     * @param item
+     */
     void erase_item(QGraphicsItem *item);
+    /**
+     * @brief Removes stationary map element from the map and deletes it. Checks if it is of the CTrafficLight type, if it is,
+     * removes the pointer from corresponding list.
+     * @param item - stationary map element to erase
+     */
     void erase_stationary_map_element(CStationaryMapElement *item);
 };
 

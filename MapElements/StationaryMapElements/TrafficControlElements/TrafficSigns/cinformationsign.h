@@ -13,7 +13,7 @@ struct SInformationSignType{
 
     SInformationSignType(QString type){
         int type_number = type.toInt();
-        if(type_number > 2){
+        if(type_number > 4){
             throw std::invalid_argument("Provided argument type does not translate to any known EInformationSigns enum member");
         }
         else{
@@ -34,10 +34,11 @@ class CInformationSign : public CTrafficSign
 public:
     SInformationSignType get_sign_type() {return m_sign_type;}
 
-    virtual QString serialize_as_string();
-    virtual QString serialize_type_as_string();
-    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
+    QString serialize_as_string() override;
+    QString serialize_type_as_string() override;
+    int get_traffic_sign_type_as_int() override;
 
+    static CStationaryMapElement *deserialize_from_string(QString item_serialized_to_string);
     static CStationaryMapElement *create_priority_road_sign();
     static CStationaryMapElement *create_pedestrian_crossing_sign();
     static CStationaryMapElement *create_one_wady_road_sign();

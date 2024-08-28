@@ -36,6 +36,12 @@ QString CInjuctionSign::serialize_as_string()
     return get_pixmap_path() + "," + m_sign_type.type_number_as_string() + "," + QString::number(pos().x()) + "," + QString::number(pos().y());
 }
 
+int CInjuctionSign::get_traffic_sign_type_as_int()
+{
+    return m_sign_type.m_type;
+}
+
+
 QString CInjuctionSign::serialize_type_as_string()
 {
     return QString("A") + "_" + QString::number(EStationaryMapElementType::traffic_control_element) + "_" +

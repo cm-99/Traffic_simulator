@@ -95,6 +95,9 @@ public:
     {m_automatic_synchronization_is_disabled = automatic_synchronization_is_disabled;}
     inline void is_automatic_offset_disabled(bool automatic_offset_is_disabled) {m_automatic_offset_is_disabled = automatic_offset_is_disabled;}
 
+    /**
+     * @brief Breaks all links of the light - both to corresponding light and opposing lights.
+     */
     void break_all_lights_linking();
     void break_lights_link();
     void break_opposing_lights_link();

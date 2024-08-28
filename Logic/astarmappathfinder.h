@@ -35,6 +35,15 @@ class AStarMapPathFinder
 {
 public:
     AStarMapPathFinder();
+    /**
+     * @brief Finds the path from specified start position to the goal position in the grid, which can be used by the road user
+     * of type user_type.
+     * @param grid - representation of the map in which path is to be found
+     * @param start - starting position (current road user position)
+     * @param goal - end position
+     * @param user_type - specifies for which type of road user the path should be traversable
+     * @return returns path if it was found; otherwise returns empty vector
+     */
     std::vector<QPoint> find_path(const QVector<QVector<EPermittedRoadUsers>>& grid, const QPoint& start, const QPoint& goal,
                                   EPermittedRoadUsers user_type);
 private:

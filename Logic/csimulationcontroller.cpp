@@ -194,11 +194,29 @@ void CSimulationController::add_road_user_with_destination_being_chosen(CRoadUse
     if(m_road_users_mapped_to_selection_ellipses.find(road_user) == m_road_users_mapped_to_selection_ellipses.end()){
         auto user_size = road_user->boundingRect().size();
         auto circle_radius = (user_size.width() > user_size.height()) ? user_size.width() : user_size.height();
-        double x_offset = circle_radius/4;
+
+        QPointF center_point;
+        int x_offset;
+        int y_offset;
+
+        if(road_user->get_road_user_type() == ERoadUsers::car){
+            center_point = road_user->pos();
+            center_point = QPointF(center_point.x() + road_user->boundingRect().width()/2,
+                                     center_point.y() + road_user->boundingRect().height()/2);
+            x_offset = road_user->boundingRect().width()/2 - road_user->boundingRect().height()/2;
+            y_offset = x_offset;
+        }
+        else{
+            center_point = road_user->pos();
+            center_point = QPointF(center_point.x() + road_user->boundingRect().width()/2,
+                                     center_point.y() + road_user->boundingRect().height()/2);
+            x_offset = road_user->boundingRect().height()/2 - road_user->boundingRect().width()/2;
+            y_offset = x_offset;
+        }
 
         auto selection_ellipse = new QGraphicsEllipseItem(0, 0, circle_radius, circle_radius);
         selection_ellipse->setZValue(3);
-        selection_ellipse->setPos(road_user->pos().x() - x_offset, road_user->pos().y());
+        selection_ellipse->setPos(center_point.x() - x_offset*2, center_point.y() - y_offset*2);
 
         if(road_user->has_designated_destination()){
             std::random_device rd;
@@ -211,7 +229,7 @@ void CSimulationController::add_road_user_with_destination_being_chosen(CRoadUse
             auto destination_ellipse = new QGraphicsEllipseItem(0, 0, circle_radius, circle_radius);
             destination_ellipse->setZValue(3);
             destination_ellipse->setBrush(QBrush(QColor(random_color), Qt::SolidPattern));
-            destination_ellipse->setPos(road_user->get_destination());
+            destination_ellipse->setPos(road_user->get_destination().x() - 5, road_user->get_destination().x() - 5);
             m_map_model->addItem(destination_ellipse);
 
             m_road_users_mapped_to_current_destination_items.insert(road_user, destination_ellipse);
@@ -242,10 +260,6 @@ void CSimulationController::add_road_user_with_destination_being_chosen(CRoadUse
 void CSimulationController::process_road_users_destination_selection(QPointF position)
 {
     QPoint destination_mapped_to_grid = map_position_to_mobility_grid(QPoint(position.x(), position.y()));
-    qDebug()<<"Destination mapped to grid: "<<destination_mapped_to_grid;
-    if(m_map_mobility_representation[destination_mapped_to_grid.x()][destination_mapped_to_grid.y()] == EPermittedRoadUsers::pedestrians){
-        qDebug()<<"Pedestrians";
-    }
     bool all_paths_found = true;
     int paths_not_found = 0;
 
@@ -262,8 +276,10 @@ void CSimulationController::process_road_users_destination_selection(QPointF pos
             else{
                 permitted_road_user = EPermittedRoadUsers::pedestrians;
             }
+            QPoint center_point = QPoint(key->pos().x() + key->boundingRect().width()/2,
+                                   key->pos().y() + key->boundingRect().height()/2);
+            QPoint position_mapped_to_grid = map_position_to_mobility_grid(center_point);
 
-            QPoint position_mapped_to_grid = map_position_to_mobility_grid(QPoint(key->pos().x(), key->pos().y()));
             auto path = m_path_finder.find_path(m_map_mobility_representation, position_mapped_to_grid, destination_mapped_to_grid,
                                                 permitted_road_user);
 
@@ -505,6 +521,7 @@ void CSimulationController::start_simulation()
         traffic_light->start_simulation();
     }
 
+    m_simulation_was_started = true;
     m_simulation_is_paused = false;
     m_simulation_timer.start();
 }
@@ -1009,6 +1026,7 @@ void CSimulationController::process_mouse_press_event_in_paused_simulation(QMous
                     return;
                 }
 
+                road_user->reset_state();
                 m_road_user_being_placed = road_user;
                 m_road_user_is_being_placed = true;
                 m_road_user_is_being_edited = true;
@@ -1168,13 +1186,36 @@ void CSimulationController::slot_process_simulation_step()
 {
     auto road_users = m_map_model->get_road_users();
     for(auto road_user : *road_users){
+        if(road_user->is_out_of_bounds()){
+            continue;
+        }
+
         road_user->move(m_map_model);
 
         if(!m_road_users_mapped_to_selection_ellipses.isEmpty()){
-
             auto it = m_road_users_mapped_to_selection_ellipses.find(road_user);
             if(it != m_road_users_mapped_to_selection_ellipses.end()){
-                it.value()->setPos(road_user->pos());
+
+                QPointF center_point;
+                int x_offset;
+                int y_offset;
+
+                if(road_user->get_road_user_type() == ERoadUsers::car){
+                    center_point = road_user->pos();
+                    center_point = QPointF(center_point.x() + road_user->boundingRect().width()/2,
+                                           center_point.y() + road_user->boundingRect().height()/2);
+                    x_offset = road_user->boundingRect().width()/2 - road_user->boundingRect().height()/2;
+                    y_offset = x_offset;
+                }
+                else{
+                    center_point = road_user->pos();
+                    center_point = QPointF(center_point.x() + road_user->boundingRect().width()/2,
+                                           center_point.y() + road_user->boundingRect().height()/2);
+                    x_offset = road_user->boundingRect().height()/2 - road_user->boundingRect().width()/2;
+                    y_offset = x_offset;
+                }
+
+                it.value()->setPos(center_point.x() - x_offset*2, center_point.y() - y_offset*2);
             }
         }
     }

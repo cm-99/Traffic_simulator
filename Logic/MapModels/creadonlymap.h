@@ -12,6 +12,11 @@
 class CReadOnlyMap: public QGraphicsScene
 {
 public:
+    /**
+     * @brief CReadOnlyMap
+     * @param scene_width - width of map to create
+     * @param scene_height - height of map to create
+     */
     CReadOnlyMap(int scene_width, int scene_height);
     ~CReadOnlyMap();
     inline QList<CRoadUser *> *get_road_users() const {return m_road_users;}

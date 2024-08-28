@@ -5,12 +5,16 @@
 
 #include "Logic/MapModels/creadonlymap.h"
 /**
- * @brief The CBaseView class provides a widget for displaying the contents of traffic map model.
+ * @brief The CBaseView class provides a widget (view) for displaying the contents of traffic map model.
  */
 class CBaseView : public QGraphicsView
 {
 public:
     CBaseView(CReadOnlyMap* map_model);
+    /**
+     * @brief set_model - Sets (or if already set, changes) the map model displayed
+     * @param map_model - map model to be set
+     */
     void set_model(CReadOnlyMap *map_model);
 
 protected:

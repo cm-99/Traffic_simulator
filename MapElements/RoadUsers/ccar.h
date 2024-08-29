@@ -52,6 +52,7 @@ private:
     bool m_is_turning_left{false};
     bool m_is_turning_right{false};
     bool m_there_is_road_priority_sign_to_check{false};
+    bool m_lights_present_but_inactive{false};
 
     //What different signs boil down to
     QList<std::pair<EHorizontalMoveDirection, bool>> m_allowed_horizontal_movements

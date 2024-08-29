@@ -246,9 +246,15 @@ void CPedestrian::take_next_step()
 
     for(auto item : items_at_lights_pos){
         auto tl = dynamic_cast<CTrafficLight*>(item);
-        if(tl && tl->is_active()){
+        if(tl){
             traffic_light = tl;
-            is_crossing_with_lights = true;
+            if(tl->is_active()){
+                is_crossing_with_lights = true;
+                m_lights_present_but_inactive = false;
+            }
+            else{
+                m_lights_present_but_inactive = true;
+            }
             break;
         }
     }
@@ -614,9 +620,16 @@ void CPedestrian::wait_to_cross_pedestrian_crossing_with_lights()
 {
     m_is_waiting_to_pass = true;
 
+    if(!(m_crossing_light->is_active())){ //Lights changed state to inactive
+        m_lights_present_but_inactive = true;
+        m_current_movement_state = EPedestrianMovementStates::waiting_to_cross_pedestrian_crossing_without_lights;
+        return;
+    }
+
     bool is_possible = check_if_crossing_pedestrian_crossing_with_lights_is_possible(m_p_crossing, m_crossing_light);
     if(is_possible){
         m_is_waiting_to_pass = false;
+        m_lights_present_but_inactive = false;
         m_current_movement_state = EPedestrianMovementStates::crossing_pedestrian_crossing;
     }
 }
@@ -625,9 +638,18 @@ void CPedestrian::wait_to_cross_pedestrian_crossing_without_lights()
 {
     m_is_waiting_to_pass = true;
 
+    if(m_lights_present_but_inactive){
+        if(m_crossing_light->is_active()){ // Lights changed state to active
+            m_lights_present_but_inactive = false;
+            m_current_movement_state = EPedestrianMovementStates::waiting_to_cross_pedestrian_crossing_without_lights;
+            return;
+        }
+    }
+
     bool is_possible = check_if_crossing_pedestrian_crossing_without_lights_is_possible(m_p_crossing);
     if(is_possible){
         m_is_waiting_to_pass = false;
+        m_lights_present_but_inactive = false;
         m_current_movement_state = EPedestrianMovementStates::crossing_pedestrian_crossing;
     }
 }
@@ -905,6 +927,7 @@ void CPedestrian::reset_state()
     m_current_movement_state = EPedestrianMovementStates::walking;
     m_current_movement_state_to_destination = EPedestrianMovementStatesToDestination::walking_to_destination;
 
+    m_lights_present_but_inactive = false;
     m_is_waiting_to_pass = false;
     is_omitting_p_crossing = false;
     p_crossing_omission_steps = 0;

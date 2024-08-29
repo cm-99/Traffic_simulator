@@ -256,6 +256,8 @@ void CCar::ride()
         m_allowed_vertical_movements = {{EVerticalMoveDirection::up, true}, {EVerticalMoveDirection::down, true}};
     }
 
+    m_lights_present_but_inactive = false;
+
     bool collision_was_incoming = handle_incoming_collisions(15);
     consider_traffic_signs();
 
@@ -470,6 +472,12 @@ QPointF CCar::get_new_possible_pos_while_accelerating()
 
 void CCar::ride_to_pedestrian_crossing_with_lights()
 {
+    if(!(m_light->is_active())){ //Active->inactive
+        m_lights_present_but_inactive = true;
+        m_current_movement_state = ECarMovementStates::riding_to_crossing_without_lights;
+        return;
+    }
+
     bool collision_handled = handle_incoming_collisions(15);
     consider_traffic_signs();
 
@@ -597,6 +605,14 @@ void CCar::ride_to_pedestrian_crossing_with_lights()
 
 void CCar::ride_to_pedestrian_crossing_without_lights()
 {
+    if(m_lights_present_but_inactive){
+        if(m_light->is_active()){ // Inactive -> active
+            m_lights_present_but_inactive = false;
+            m_current_movement_state = ECarMovementStates::riding_to_crossing_with_lights;
+            return;
+        }
+    }
+
     bool collision_handled = handle_incoming_collisions(15);
     consider_traffic_signs();
 
@@ -699,6 +715,12 @@ void CCar::ride_to_pedestrian_crossing_without_lights()
 
 void CCar::wait_to_cross_pedestrian_crossing_with_lights()
 {
+    if(!(m_light->is_active())){ //Active->inactive
+        m_lights_present_but_inactive = true;
+        m_current_movement_state = ECarMovementStates::waiting_to_cross_pedestrian_crossing_wi_lights;
+        return;
+    }
+
     m_current_speed = 0;
     update_speed_vector();
 
@@ -711,6 +733,17 @@ void CCar::wait_to_cross_pedestrian_crossing_with_lights()
 
 void CCar::wait_to_cross_pedestrian_crossing_without_lights()
 {
+    if(m_lights_present_but_inactive){
+        if(m_light->is_active()){ // Inactive -> active
+            m_lights_present_but_inactive = false;
+            m_current_movement_state = ECarMovementStates::waiting_to_cross_pedestrian_crossing_w_lights;
+            return;
+        }
+    }
+
+    m_current_speed = 0;
+    update_speed_vector();
+
     bool crossing_possible = !(check_for_pedestrians_trying_to_cross());
     if(crossing_possible){
         m_is_waiting = false;
@@ -1255,6 +1288,12 @@ void CCar::turn_around()
 
 void CCar::ride_to_crossing_with_lights()
 {
+    if(!(m_light->is_active())){ //Active->inactive
+        m_lights_present_but_inactive = true;
+        m_current_movement_state = ECarMovementStates::riding_to_crossing_without_lights;
+        return;
+    }
+
     bool collision_handled = handle_incoming_collisions(15);
     consider_traffic_signs();
 
@@ -1381,6 +1420,14 @@ void CCar::ride_to_crossing_with_lights()
 
 void CCar::ride_to_crossing_without_lights()
 {
+    if(m_lights_present_but_inactive){
+        if(m_light->is_active()){ // Inactive -> active
+            m_lights_present_but_inactive = false;
+            m_current_movement_state = ECarMovementStates::riding_to_crossing_with_lights;
+            return;
+        }
+    }
+
     bool collision_handled = handle_incoming_collisions(15);
     consider_traffic_signs();
 
@@ -1564,6 +1611,12 @@ void CCar::wait_to_cross_crossing_with_lights()
         m_crossing_after_p_crossing = false;
     }
 
+    if(!(m_light->is_active())){ //Active->inactive
+        m_lights_present_but_inactive = true;
+        m_current_movement_state = ECarMovementStates::waiting_to_cross_crossing_without_lights;
+        return;
+    }
+
     if(m_light->get_current_lights_phase() == ETrafficLightsPhase::green){
 
         choose_direction_on_crossing_with_lights();
@@ -1589,6 +1642,14 @@ void CCar::wait_to_cross_crossing_without_lights()
         m_previous_movement_state = m_current_movement_state;
         m_current_movement_state = ECarMovementStates::getting_closer_to_the_crossing;
         m_crossing_after_p_crossing = false;
+    }
+
+    if(m_lights_present_but_inactive){
+        if(m_light->is_active()){ // Inactive -> active
+            m_lights_present_but_inactive = false;
+            m_current_movement_state = ECarMovementStates::waiting_to_cross_crossing_with_lights;
+            return;
+        }
     }
 
     choose_direction_on_crossing_without_lights();
@@ -1954,9 +2015,16 @@ bool CCar::check_for_p_crossing_lights()
 
     for(auto item : items_at_lights_pos){
         auto tl = dynamic_cast<CTrafficLight*>(item);
-        if(tl && tl->is_active()){
+        if(tl){
             traffic_light = tl;
-            is_crossing_with_lights = true;
+
+            if(tl->is_active()){
+                is_crossing_with_lights = true;
+            }
+            else{
+                m_lights_present_but_inactive = true;
+            }
+
             break;
         }
     }
@@ -2004,9 +2072,16 @@ bool CCar::check_for_crossing_lights()
 
     for(auto item : items_at_lights_pos){
         auto tl = dynamic_cast<CTrafficLight*>(item);
-        if(tl && tl->is_active()){
+        if(tl){
             traffic_light = tl;
-            is_crossing_with_lights = true;
+
+            if(tl->is_active()){
+                is_crossing_with_lights = true;
+            }
+            else{
+                m_lights_present_but_inactive = true;
+            }
+
             break;
         }
     }
@@ -3834,6 +3909,7 @@ void CCar::move(CReadOnlyMap *map)
 
 void CCar::reset_state()
 {
+    m_lights_present_but_inactive = false;
     m_was_waiting_for_simulation_to_start = false;
     m_rotation_remaining = 0;
     m_arc_length_remaining = 0;

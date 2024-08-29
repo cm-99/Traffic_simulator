@@ -35,6 +35,7 @@ private:
     EPedestrianMovementStates m_current_movement_state{EPedestrianMovementStates::walking};
     EPedestrianMovementStatesToDestination m_current_movement_state_to_destination{EPedestrianMovementStatesToDestination::walking_to_destination};
 
+    bool m_lights_present_but_inactive{false};
     bool m_is_waiting_to_pass{false};
     bool is_omitting_p_crossing{false};
     int p_crossing_omission_steps{0};

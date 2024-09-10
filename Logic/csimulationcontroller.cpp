@@ -229,7 +229,8 @@ void CSimulationController::add_road_user_with_destination_being_chosen(CRoadUse
             auto destination_ellipse = new QGraphicsEllipseItem(0, 0, circle_radius, circle_radius);
             destination_ellipse->setZValue(3);
             destination_ellipse->setBrush(QBrush(QColor(random_color), Qt::SolidPattern));
-            destination_ellipse->setPos(road_user->get_destination().x() - 5, road_user->get_destination().x() - 5);
+
+            destination_ellipse->setPos(road_user->get_destination().x() - 5, road_user->get_destination().y() - 5);
             m_map_model->addItem(destination_ellipse);
 
             m_road_users_mapped_to_current_destination_items.insert(road_user, destination_ellipse);
@@ -276,6 +277,7 @@ void CSimulationController::process_road_users_destination_selection(QPointF pos
             else{
                 permitted_road_user = EPermittedRoadUsers::pedestrians;
             }
+
             QPoint center_point = QPoint(key->pos().x() + key->boundingRect().width()/2,
                                    key->pos().y() + key->boundingRect().height()/2);
             QPoint position_mapped_to_grid = map_position_to_mobility_grid(center_point);

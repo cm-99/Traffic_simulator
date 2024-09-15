@@ -14,10 +14,20 @@ public:
     CEditableMap(int scene_width, int scene_height);
 
     /**
+     * @brief Resizes the map's scene to given dimensions.
+     * @param scene_width - new scene width
+     * @param scene_height - new scene height
+     */
+    void resize_map(int scene_width, int scene_height);
+    /**
      * @brief Fills map cells with graphical items of CFiller type.
      * If more representations of filler will be added it should randomly change those.
      */
     void fill_map();
+    /**
+     * @brief Adds guide grids separating map cells.
+     */
+    void add_guide_grid();
     /**
      * @brief Adds map boundaries in the form of graphical lines.
      */
@@ -59,6 +69,12 @@ public:
      * @param item - stationary map element to erase
      */
     void erase_stationary_map_element(CStationaryMapElement *item);
+
+private:
+    void erase_map_boundaries();
+    void erase_guide_grid();
+    void enlarge_map(int scene_width, int scene_height);
+    void shrink_map(int scene_width, int scene_height);
 };
 
 #endif // CEDITABLEMAP_H

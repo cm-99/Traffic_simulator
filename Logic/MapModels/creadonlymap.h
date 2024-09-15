@@ -19,6 +19,8 @@ public:
      */
     CReadOnlyMap(int scene_width, int scene_height);
     ~CReadOnlyMap();
+
+    inline QList<QSize> *get_supported_map_sizes() const {return m_supported_map_sizes;}
     inline QList<CRoadUser *> *get_road_users() const {return m_road_users;}
     inline QList<CStationaryMapElement*> *get_stationary_map_elements() const {return m_stationary_map_elements;}
     inline QList<CTrafficLight*> *get_traffic_lights() const {return m_traffic_lights;}
@@ -26,6 +28,8 @@ public:
     static inline QSize get_default_cell_size() {return QSize(40, 40);}
 
 protected:
+    QList<QSize> *m_supported_map_sizes;
+
     // Needed for quick access to the objects which depend on simulation speed/timers
     QList<CRoadUser*> *m_road_users;
     QList<CStationaryMapElement*> *m_stationary_map_elements;

@@ -25,6 +25,7 @@ private:
     CMapElementsPlacementWidget* m_map_elements_placement_widget;
 
 private slots:
+    void relay_map_resize_request();
     void relay_map_saving_request();
     void relay_simulation_start_request();
     void process_map_clearing_request();

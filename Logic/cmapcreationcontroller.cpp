@@ -16,7 +16,7 @@ CMapCreationController::CMapCreationController(CApplicationController *applicati
 {
     m_map_model = new CEditableMap(1920, 1080);
     m_map_model->fill_map();
-    add_guide_grid();
+    m_map_model->add_guide_grid();
     m_map_view = new CMapCreationView(m_map_model, this);
 
     auto *xml_map_manager = new CXMLMapImportAndExportManager();
@@ -43,7 +43,7 @@ bool CMapCreationController::load_map_into_creator(QString map_file_path)
     }
 
     set_model(map_model);
-    add_guide_grid();
+    m_map_model->add_guide_grid();
 
     return true;
 }
@@ -164,29 +164,6 @@ void CMapCreationController::set_crossings_valid_sides(CEditableMap *map_model)
     }
 }
 
-
-void CMapCreationController::add_guide_grid()
-{
-    QSize default_element_size = CStationaryMapElement::get_default_map_element_size();
-    int default_element_width = default_element_size.width();
-    int default_element_height = default_element_size.height();
-    int map_model_width = m_map_model->width();
-    int map_model_height = m_map_model->height();
-    int horizontal_guide_lines_number = map_model_height/default_element_height;
-    int vertical_guide_lines_number = map_model_width/default_element_width;
-
-    for(int i = 0; i <= horizontal_guide_lines_number; i++){
-        int line_y_pos = i * default_element_height;
-        m_map_model->addLine(0, line_y_pos, map_model_width, line_y_pos);
-    }
-
-
-    for(int i = 0; i <= vertical_guide_lines_number; i++){
-        int line_x_pos = i * default_element_width;
-        m_map_model->addLine(line_x_pos, 0, line_x_pos, map_model_height);
-    }
-}
-
 void CMapCreationController::place_element_and_prepare_next(QMouseEvent *event)
 {
     QPoint placement_position = get_element_placement_position_snapped_to_grid(m_element_being_placed);
@@ -276,6 +253,11 @@ void CMapCreationController::set_element_to_place_creation_func(CStationaryMapEl
     m_element_being_placed = creation_func();
     m_map_model->add_stationary_map_element(m_element_being_placed, QPointF(0, 0));
     prepare_validation_rect();
+}
+
+void CMapCreationController::resize_map(int width, int height)
+{
+    m_map_model->resize_map(width, height);
 }
 
 bool CMapCreationController::process_wheel_event(QWheelEvent *event)

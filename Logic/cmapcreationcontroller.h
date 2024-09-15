@@ -26,6 +26,7 @@ public:
     explicit CMapCreationController(CApplicationController *application_controller);
     ~CMapCreationController();
 
+    inline QList<QSize> *get_supported_map_sizes() const {return m_map_model->get_supported_map_sizes();}
     /**
      * @brief Processes wheel event. If map element is being placed and it is rotable, it will be rotated according to the wheel event.
      * Otherwise relays the event to corresponding view.
@@ -85,6 +86,12 @@ public:
      * @brief Sets provided function pointer as the creation function which is to be used to create next elements to place.
      */
     void set_element_to_place_creation_func(CStationaryMapElement *(*creation_func)(void));
+    /**
+     * @brief Resizes the map model owned by this controller.
+     * @param width - new map width
+     * @param height - new map height
+     */
+    void resize_map(int width, int height);
 
 private:
     QList<QString> m_supported_map_file_formats;
@@ -99,7 +106,6 @@ private:
     QGraphicsRectItem *m_validation_rect{nullptr};
     int m_val_rect_size_offset{6};
 
-    void add_guide_grid();
     bool perform_final_map_validation();
     /**
      * @brief fill_in_missing_lights - fills in the missing lights corresponding to pedestrian crossing or intersection

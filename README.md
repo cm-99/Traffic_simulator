@@ -19,10 +19,12 @@ It is not possible to switch to simulation until all elements are placed correct
   There is a chance to perform an action which breaks traffic law, which can be adjusted by modifying the corresponding parameter (chance of breaking the law with range 0-100%).
 
 For those who would rather see it in action, wait a moment, gifs with a simple demo are loading beneath.
-**Map creation:**
+
+**Map creation**
 
 ![alt text](demos/Traffic_simulator-map_creation_demo.mp4)
-**Simulation:**
+
+**Simulation**
 
 ![alt text](demos/Traffic_simulator-simulation_demo.mp4)
 

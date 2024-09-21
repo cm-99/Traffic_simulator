@@ -18,7 +18,14 @@ It is not possible to switch to simulation until all elements are placed correct
   + **Movement of traffic users:** It is possible to simulate the movement of cars and pedestrians automatically or choose destinations for individual traffic users. Traffic users move (or at least they should) according to the traffic law.
   There is a chance to perform an action which breaks traffic law, which can be adjusted by modifying the corresponding parameter (chance of breaking the law with range 0-100%).
 
-For those who would rather see it in action, wait a moment, gif with a simple demo is loading beneath. 
+For those who would rather see it in action, wait a moment, gifs with a simple demo are loading beneath.
+**Map creation:**
+![alt text](demos/Traffic_simulator-map_creation_demo.mp4)
+**Simulation:**
+![alt text](demos/Traffic_simulator-simulation_demo.mp4)
+
+Pop-up dialogs were not recorded, so here is a simulation configuration which led to the result shown above:
+![alt text](demos/simulation_configuration.png)
 
 ## Built with
 Qt 5.15.
@@ -26,8 +33,3 @@ Qt 5.15.
 ## License
 This project is licensed under GPLv3 license.
 
-## Possible development
-+ other barcode types for encoding
-+ list of page sizes and ability to add custom ones
-+ changing single barcode preview to single page preview
-+ wider file/page customization in terms of barcodes layout

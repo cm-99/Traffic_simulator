@@ -20,11 +20,14 @@ It is not possible to switch to simulation until all elements are placed correct
 
 For those who would rather see it in action, wait a moment, gifs with a simple demo are loading beneath.
 **Map creation:**
+
 ![alt text](demos/Traffic_simulator-map_creation_demo.mp4)
 **Simulation:**
+
 ![alt text](demos/Traffic_simulator-simulation_demo.mp4)
 
 Pop-up dialogs were not recorded, so here is a simulation configuration which led to the result shown above:
+
 ![alt text](demos/simulation_configuration.png)
 
 ## Built with

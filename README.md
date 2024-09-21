@@ -22,11 +22,11 @@ For those who would rather see it in action, wait a moment, gifs with a simple d
 
 **Map creation**
 
-![alt text](demos/Traffic_simulator-map_creation_demo.mp4)
+![alt text](demos/map_creation_demo.gif)
 
 **Simulation**
 
-![alt text](demos/Traffic_simulator-simulation_demo.mp4)
+![alt text](demos/simulation_demo.gif)
 
 Pop-up dialogs were not recorded, so here is a simulation configuration which led to the result shown above:
 
